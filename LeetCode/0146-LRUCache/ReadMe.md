@@ -16,3 +16,19 @@ Design and implement a data structure for Least Recently Used (LRU) cache. It sh
 
 URL: [https://leetcode.com/problems/lru-cache/](https://leetcode.com/problems/lru-cache/)
 
+C++:
+
+    class LRUCache{
+    public:
+        LRUCache(int capacity) {
+            
+        }
+        
+        int get(int key) {
+            
+        }
+        
+        void set(int key, int value) {
+            
+        }
+    };

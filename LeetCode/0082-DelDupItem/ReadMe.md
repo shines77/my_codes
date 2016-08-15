@@ -18,3 +18,20 @@ Given `1->1->1->2->3`, return `2->3`.
 [Subscribe](https://leetcode.com/subscribe/) to see which companies asked this question.
 
 URL: [https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/](https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/)
+
+C++:
+
+    /**
+     * Definition for singly-linked list.
+     * struct ListNode {
+     *     int val;
+     *     ListNode *next;
+     *     ListNode(int x) : val(x), next(NULL) {}
+     * };
+     */
+    class Solution {
+    public:
+        ListNode* deleteDuplicates(ListNode* head) {
+            
+        }
+    };
