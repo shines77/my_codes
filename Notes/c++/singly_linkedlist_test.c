@@ -132,7 +132,7 @@ void free_list_entry()
     tail = nullptr;
 }
 
-void test_linklist()
+void test_singly_linkedlist()
 {
     init_list_entry();
 
@@ -164,6 +164,6 @@ void test_linklist()
 
 int main(int argc, char * argv[])
 {
-    test_linklist();
+    test_singly_linkedlist();
     return 0;
 }
