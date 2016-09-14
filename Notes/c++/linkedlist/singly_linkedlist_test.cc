@@ -1,24 +1,34 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
-typedef struct linklist
+#if !defined(__cplusplus)
+#define nullptr ((void *)0)
+#endif
+
+typedef struct linkedlist
 {
-    linklist * next;
+    struct linkedlist * next;
     int data;
-} linklist;
+} linkedlist;
 
-static linklist * head, * tail;
+static linkedlist * head, * tail;
 
-void init_list_entry()
+void reset_list_entry()
 {
     head = nullptr;
     tail = nullptr;
 }
 
+void init_list_entry()
+{
+    reset_list_entry();
+}
+
 size_t get_list_count() {
     size_t count = 0;
-    linklist * iter = head;
+    linkedlist * iter = head;
     while (iter) {
         count++;
         iter = iter->next;
@@ -27,26 +37,28 @@ size_t get_list_count() {
 }
 
 void display_list_entry() {
-    printf("-----------------------------------\n");
+    printf("-----------------------------------------\n");
     printf("head: 0x%p\n", head);
-    linklist * iter = head;
+    linkedlist * iter = head;
+    int i = 0;
     while (iter) {
-        printf(">>>> self: 0x%p, next: 0x%p, data = %d\n", iter, iter->next, iter->data);
+        printf(">>>>  entry[%3d] - addr: 0x%p, next: 0x%p, data = %d\n", i, iter, iter->next, iter->data);
+        i++;
         iter = iter->next;
     }
     printf("tail: 0x%p\n", tail);
-    printf("-----------------------------------\n\n");
+    printf("-----------------------------------------\n\n");
 }
 
-linklist * create_list_entry(int data)
+linkedlist * create_list_entry(int data)
 {
-    linklist * entry = new linklist;
+    linkedlist * entry = new linkedlist;
     entry->next = nullptr;
     entry->data = data;
     return entry;
 }
 
-void append_list_entry(linklist * entry)
+void append_list_entry(linkedlist * entry)
 {
     assert(entry != nullptr);
     entry->next = nullptr;
@@ -61,7 +73,7 @@ void append_list_entry(linklist * entry)
     }
 }
 
-bool remove_list_entry(linklist * entry)
+bool remove_list_entry(linkedlist * entry)
 {
     assert(entry != nullptr);
     if (head == entry) {
@@ -72,7 +84,7 @@ bool remove_list_entry(linklist * entry)
         return true;
     }
 
-    linklist * iter = head;
+    linkedlist * iter = head;
     do {
         if (iter == nullptr)
             return false;
@@ -90,7 +102,7 @@ bool remove_list_entry(linklist * entry)
     return true;
 }
 
-bool remove_list_entry2(linklist * entry)
+bool remove_list_entry2(linkedlist * entry)
 {
     assert(entry != nullptr);
     if (head == nullptr)
@@ -104,7 +116,7 @@ bool remove_list_entry2(linklist * entry)
         return true;
     }
 
-    linklist * iter = head;
+    linkedlist * iter = head;
     while (iter->next != entry) {
         iter = iter->next;
         if (!iter)
@@ -118,10 +130,38 @@ bool remove_list_entry2(linklist * entry)
     return true;
 }
 
+bool remove_list_entry_fast(linkedlist * entry)
+{
+    assert(entry != nullptr);
+    linkedlist ** indirect = &head;
+
+    // Notes: *indirect = iter->next, except first time value = &head.
+    while ((*indirect) != entry) {
+        if ((*indirect) != nullptr) {
+            indirect = &((*indirect)->next);
+        }
+        else {
+            return false;
+        }
+    }
+
+    // Notes: iter->next = entry->next;
+    // if (head == entry && head == tail) {
+    if (head == tail) {
+        tail = entry->next;
+    }
+    else if (entry->next == nullptr) {
+        tail = (linkedlist *)indirect;      // TODO: tail = iter; ???
+    }
+    (*indirect) = entry->next;
+    delete entry;
+    return true;
+}
+
 void free_list_entry()
 {
-    linklist * entry;
-    linklist * iter = head;
+    linkedlist * entry;
+    linkedlist * iter = head;
     while (iter) {
         entry = iter;
         iter = iter->next;
@@ -136,27 +176,31 @@ void test_singly_linkedlist()
 {
     init_list_entry();
 
-    linklist * node1 = create_list_entry(1);
+    linkedlist * node1 = create_list_entry(1);
     append_list_entry(node1);
-    linklist * node2 = create_list_entry(2);
+    linkedlist * node2 = create_list_entry(2);
     append_list_entry(node2);
-    linklist * node3 = create_list_entry(3);
+    linkedlist * node3 = create_list_entry(3);
     append_list_entry(node3);
 
+    printf("append 3 entries;  count = %zu\n", get_list_count());
     display_list_entry();
 
-    linklist * node = node3;
-    remove_list_entry(node3);
-    display_list_entry();
+    linkedlist * node = node3;
+    remove_list_entry_fast(node3);
+
     printf("remove_list_entry(node3);  count = %zu\n", get_list_count());
-
-    remove_list_entry(node1);
     display_list_entry();
+    
+    remove_list_entry_fast(node1);
+
     printf("remove_list_entry(node1);  count = %zu\n", get_list_count());
-
-    remove_list_entry(node2);
     display_list_entry();
+    
+    remove_list_entry_fast(node2);
+    
     printf("remove_list_entry(node2);  count = %zu\n", get_list_count());
+    display_list_entry();
 
     free_list_entry();
     printf("\n");
@@ -165,5 +209,8 @@ void test_singly_linkedlist()
 int main(int argc, char * argv[])
 {
     test_singly_linkedlist();
+#ifdef _WIN32
+    ::system("pause");
+#endif
     return 0;
 }
