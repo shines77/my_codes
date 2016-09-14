@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D3056EDF-1A66-4C94-B26D-ACB94F093E1A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>linkedlist</RootNamespace>
+    <RootNamespace>linkedlist_test</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
