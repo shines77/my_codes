@@ -12,14 +12,14 @@
 
 void test_atomic()
 {
-	using semaphore_type = semaphore;
+    using semaphore_type = semaphore;
 
-	semaphore_type sema_1{ 1 };
-	semaphore_type sema_2{ 1 };
-	semaphore_type end_sema{ 2 };
+    semaphore_type sema_1{ 1 };
+    semaphore_type sema_2{ 1 };
+    semaphore_type end_sema{ 2 };
 
-	//int x, y, r1, r2;
-	std::atomic<int> x, y, r1, r2;
+    //int x, y, r1, r2;
+    std::atomic<int> x, y, r1, r2;
     std::atomic<bool> exit_flag = true;
 
 #if 1
@@ -53,81 +53,81 @@ void test_atomic()
     store_memory_order = std::memory_order_release;
 #endif
 
-	std::thread t1
-	{
-		[&]()
-		{
-			while (exit_flag.load())
-			{
-				//sema_1.wait();
-				while (std::rand() % 8 != 0);
+    std::thread t1
+    {
+        [&]()
+        {
+            while (exit_flag.load())
+            {
+                //sema_1.wait();
+                while (std::rand() % 8 != 0);
 
-				// transaction thread 1
-				x.store(1, store_memory_order);
-				r1.store(y.load(load_memory_order), store_memory_order);
-				///////////////////////
+                // transaction thread 1
+                x.store(1, store_memory_order);
+                r1.store(y.load(load_memory_order), store_memory_order);
+                ///////////////////////
 
-				//end_sema.signal();
-			}
-		}
-	};
+                //end_sema.signal();
+            }
+        }
+    };
 
     std::thread t2
     {
-	    [&]()
-	    {
-		    while (exit_flag.load())
-		    {
-			    //sema_2.wait();
-			    while (std::rand() % 8 != 0);
+        [&]()
+        {
+            while (exit_flag.load())
+            {
+                //sema_2.wait();
+                while (std::rand() % 8 != 0);
 
-			    // transaction thread 2
-			    y.store(1, store_memory_order);
-			    r2.store(x.load(load_memory_order), store_memory_order);
-			    ///////////////////////
+                // transaction thread 2
+                y.store(1, store_memory_order);
+                r2.store(x.load(load_memory_order), store_memory_order);
+                ///////////////////////
 
-			    //end_sema.signal();
-		    }
-	    }
+                //end_sema.signal();
+            }
+        }
     };
 
     static const size_t max_iterations = 500000;
-	size_t detected_0_0 = 0, detected_0_1 = 0, detected_1_0 = 0, detected_1_1 = 0;
+    size_t detected_0_0 = 0, detected_0_1 = 0, detected_1_0 = 0, detected_1_1 = 0;
     size_t detected_other = 0, detected_total = 0;
-	for (auto iterations = 0; iterations < max_iterations; ++iterations)
-	{
-		//x = 0; y = 0; r1 = 0; r2 = 0;
+    for (auto iterations = 0; iterations < max_iterations; ++iterations)
+    {
+        //x = 0; y = 0; r1 = 0; r2 = 0;
         x.store(0, store_memory_order);
         y.store(0, store_memory_order);
         r1.store(0, store_memory_order);
         r2.store(0, store_memory_order);
-		//sema_1.signal();
-		//sema_2.signal();
-		//end_sema.wait();
-		//end_sema.wait();
+        //sema_1.signal();
+        //sema_2.signal();
+        //end_sema.wait();
+        //end_sema.wait();
 
         detected_total++;
         int _r1 = r1.load(load_memory_order);
         int _r2 = r2.load(load_memory_order);
-		if (_r1 == 0 && _r2 == 0)
-			detected_0_0++;
-		else if (_r1 == 0 && _r2 == 1)
-			detected_0_1++;
-		else if (_r1 == 1 && _r2 == 0)
-			detected_1_0++;
-		else if (_r1 == 1 && _r2 == 1)
-			detected_1_1++;
+        if (_r1 == 0 && _r2 == 0)
+            detected_0_0++;
+        else if (_r1 == 0 && _r2 == 1)
+            detected_0_1++;
+        else if (_r1 == 1 && _r2 == 0)
+            detected_1_0++;
+        else if (_r1 == 1 && _r2 == 1)
+            detected_1_1++;
         else {
             detected_other++;   // Other unknown result.
             printf("Error: r1 = %d, r2 = %d\n", _r1, _r2);
         }
-	}
+    }
 
     exit_flag.store(false);
-	//sema_1.signal();
-	//sema_2.signal();
-	//end_sema.wait();
-	//end_sema.wait();
+    //sema_1.signal();
+    //sema_2.signal();
+    //end_sema.wait();
+    //end_sema.wait();
 
     printf("[r1, r2] order result [0, 0]: %8zu / %zu, %5.1f %% detected.\n",
         detected_0_0, detected_total, ((double)detected_0_0  * 100.0/ detected_total));
@@ -150,14 +150,14 @@ void test_atomic()
 
 void test_semaphore()
 {
-	using semaphore_type = semaphore;
+    using semaphore_type = semaphore;
 
-	semaphore_type sema_1{ 1 };
-	semaphore_type sema_2{ 1 };
-	semaphore_type end_sema{ 2 };
+    semaphore_type sema_1{ 1 };
+    semaphore_type sema_2{ 1 };
+    semaphore_type end_sema{ 2 };
 
-	//int x, y, r1, r2;
-	std::atomic<int> x, y, r1, r2;
+    //int x, y, r1, r2;
+    std::atomic<int> x, y, r1, r2;
     std::atomic<bool> exit_flag = true;
 
 #if 1
@@ -191,81 +191,81 @@ void test_semaphore()
     store_memory_order = std::memory_order_release;
 #endif
 
-	std::thread t1
-	{
-		[&]()
-		{
-			while (exit_flag.load())
-			{
-				sema_1.wait();
-				while (std::rand() % 8 != 0);
+    std::thread t1
+    {
+        [&]()
+        {
+            while (exit_flag.load())
+            {
+                sema_1.wait();
+                while (std::rand() % 8 != 0);
 
-				// transaction thread 1
-				x.store(1, store_memory_order);
-				r1.store(y.load(load_memory_order), store_memory_order);
-				///////////////////////
+                // transaction thread 1
+                x.store(1, store_memory_order);
+                r1.store(y.load(load_memory_order), store_memory_order);
+                ///////////////////////
 
-				end_sema.signal();
-			}
-		}
-	};
+                end_sema.signal();
+            }
+        }
+    };
 
     std::thread t2
     {
-	    [&]()
-	    {
-		    while (exit_flag.load())
-		    {
-			    sema_2.wait();
-			    while (std::rand() % 8 != 0);
+        [&]()
+        {
+            while (exit_flag.load())
+            {
+                sema_2.wait();
+                while (std::rand() % 8 != 0);
 
-			    // transaction thread 2
-			    y.store(1, store_memory_order);
-			    r2.store(x.load(load_memory_order), store_memory_order);
-			    ///////////////////////
+                // transaction thread 2
+                y.store(1, store_memory_order);
+                r2.store(x.load(load_memory_order), store_memory_order);
+                ///////////////////////
 
-			    end_sema.signal();
-		    }
-	    }
+                end_sema.signal();
+            }
+        }
     };
 
     static const size_t max_iterations = 500000;
-	size_t detected_0_0 = 0, detected_0_1 = 0, detected_1_0 = 0, detected_1_1 = 0;
+    size_t detected_0_0 = 0, detected_0_1 = 0, detected_1_0 = 0, detected_1_1 = 0;
     size_t detected_other = 0, detected_total = 0;
-	for (auto iterations = 0; iterations < max_iterations; ++iterations)
-	{
-		//x = 0; y = 0; r1 = 0; r2 = 0;
+    for (auto iterations = 0; iterations < max_iterations; ++iterations)
+    {
+        //x = 0; y = 0; r1 = 0; r2 = 0;
         x.store(0, store_memory_order);
         y.store(0, store_memory_order);
         r1.store(0, store_memory_order);
         r2.store(0, store_memory_order);
-		sema_1.signal();
-		sema_2.signal();
-		end_sema.wait();
-		end_sema.wait();
+        sema_1.signal();
+        sema_2.signal();
+        end_sema.wait();
+        end_sema.wait();
 
         detected_total++;
         int _r1 = r1.load(load_memory_order);
         int _r2 = r2.load(load_memory_order);
-		if (_r1 == 0 && _r2 == 0)
-			detected_0_0++;
-		else if (_r1 == 0 && _r2 == 1)
-			detected_0_1++;
-		else if (_r1 == 1 && _r2 == 0)
-			detected_1_0++;
-		else if (_r1 == 1 && _r2 == 1)
-			detected_1_1++;
+        if (_r1 == 0 && _r2 == 0)
+            detected_0_0++;
+        else if (_r1 == 0 && _r2 == 1)
+            detected_0_1++;
+        else if (_r1 == 1 && _r2 == 0)
+            detected_1_0++;
+        else if (_r1 == 1 && _r2 == 1)
+            detected_1_1++;
         else {
             detected_other++;   // Other unknown result.
             printf("Error: r1 = %d, r2 = %d\n", _r1, _r2);
         }
-	}
+    }
 
     exit_flag.store(false);
-	sema_1.signal();
-	sema_2.signal();
-	end_sema.wait();
-	end_sema.wait();
+    sema_1.signal();
+    sema_2.signal();
+    end_sema.wait();
+    end_sema.wait();
 
     printf("[r1, r2] order result [0, 0]: %8zu / %zu, %5.1f %% detected.\n",
         detected_0_0, detected_total, ((double)detected_0_0  * 100.0/ detected_total));
