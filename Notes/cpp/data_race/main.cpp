@@ -22,8 +22,36 @@ void test_atomic()
 	std::atomic<int> x, y, r1, r2;
     std::atomic<bool> exit_flag = true;
 
+#if 1
+    x = 0; y = 0; r1 = 0; r2 = 0;
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+#else
+    x.store(0, std::memory_order_seq_cst);
+    y.store(0, std::memory_order_seq_cst);
+    r1.store(0, std::memory_order_seq_cst);
+    r2.store(0, std::memory_order_seq_cst);
+#endif
+
     printf("--------------------------------------------------------------------\n");
     printf("test_atomic():\n\n");
+
+    std::memory_order load_memory_order, store_memory_order;
+    // You can switch the atomic::load() memory_order and atomic::store() memory_order,
+    // default value both is std::memory_order_seq_cst,
+#if 0
+    // std::memory_order_seq_cst is a instruction level memory barrier.
+    // On x86, it's a InterlockedExchange() instruction.
+    // On arm, it's a instruction level memory barrier - "mfence" or other like this.
+    load_memory_order = std::memory_order_seq_cst;
+    store_memory_order = std::memory_order_seq_cst;
+#else
+    // std::memory_order_acquire and std::memory_order_release
+    // is a compiler level memory barrier or a instruction level memory barrier.
+    // On x86, it's a compiler level memory barrier.
+    // On arm, it's a instruction level memory barrier.
+    load_memory_order = std::memory_order_acquire;
+    store_memory_order = std::memory_order_release;
+#endif
 
 	std::thread t1
 	{
@@ -35,8 +63,8 @@ void test_atomic()
 				while (std::rand() % 8 != 0);
 
 				// transaction thread 1
-				x.store(1);
-				r1.store(y.load());
+				x.store(1, store_memory_order);
+				r1.store(y.load(load_memory_order), store_memory_order);
 				///////////////////////
 
 				//end_sema.signal();
@@ -54,8 +82,8 @@ void test_atomic()
 			    while (std::rand() % 8 != 0);
 
 			    // transaction thread 2
-			    y.store(1);
-			    r2.store(x.load());
+			    y.store(1, store_memory_order);
+			    r2.store(x.load(load_memory_order), store_memory_order);
 			    ///////////////////////
 
 			    //end_sema.signal();
@@ -124,8 +152,31 @@ void test_semaphore()
 	std::atomic<int> x, y, r1, r2;
     std::atomic<bool> exit_flag = true;
 
+    x.store(0, std::memory_order_seq_cst);
+    y.store(0, std::memory_order_seq_cst);
+    r1.store(0, std::memory_order_seq_cst);
+    r2.store(0, std::memory_order_seq_cst);
+
     printf("--------------------------------------------------------------------\n");
     printf("test_semaphore():\n\n");
+
+    std::memory_order load_memory_order, store_memory_order;
+    // You can switch the atomic::load() memory_order and atomic::store() memory_order,
+    // default value both is std::memory_order_seq_cst,
+#if 0
+    // std::memory_order_seq_cst is a instruction level memory barrier.
+    // On x86, it's a InterlockedExchange() instruction.
+    // On arm, it's a instruction level memory barrier - "mfence" or other like this.
+    load_memory_order = std::memory_order_seq_cst;
+    store_memory_order = std::memory_order_seq_cst;
+#else
+    // std::memory_order_acquire and std::memory_order_release
+    // is a compiler level memory barrier or a instruction level memory barrier.
+    // On x86, it's a compiler level memory barrier.
+    // On arm, it's a instruction level memory barrier.
+    load_memory_order = std::memory_order_acquire;
+    store_memory_order = std::memory_order_release;
+#endif
 
 	std::thread t1
 	{
