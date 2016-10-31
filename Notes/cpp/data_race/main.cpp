@@ -57,7 +57,7 @@ void test_atomic()
     {
         [&]()
         {
-            while (exit_flag.load())
+            while (exit_flag.load(load_memory_order))
             {
                 //sema_1.wait();
                 while (std::rand() % 8 != 0);
@@ -76,7 +76,7 @@ void test_atomic()
     {
         [&]()
         {
-            while (exit_flag.load())
+            while (exit_flag.load(load_memory_order))
             {
                 //sema_2.wait();
                 while (std::rand() % 8 != 0);
@@ -123,7 +123,7 @@ void test_atomic()
         }
     }
 
-    exit_flag.store(false);
+    exit_flag.store(false, store_memory_order);
     //sema_1.signal();
     //sema_2.signal();
     //end_sema.wait();
@@ -195,7 +195,7 @@ void test_semaphore()
     {
         [&]()
         {
-            while (exit_flag.load())
+            while (exit_flag.load(load_memory_order))
             {
                 sema_1.wait();
                 while (std::rand() % 8 != 0);
@@ -214,7 +214,7 @@ void test_semaphore()
     {
         [&]()
         {
-            while (exit_flag.load())
+            while (exit_flag.load(load_memory_order))
             {
                 sema_2.wait();
                 while (std::rand() % 8 != 0);
@@ -261,7 +261,7 @@ void test_semaphore()
         }
     }
 
-    exit_flag.store(false);
+    exit_flag.store(false, store_memory_order);
     sema_1.signal();
     sema_2.signal();
     end_sema.wait();
