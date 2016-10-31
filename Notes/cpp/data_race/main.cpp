@@ -96,23 +96,31 @@ void test_atomic()
     size_t detected_other = 0, detected_total = 0;
 	for (auto iterations = 0; iterations < max_iterations; ++iterations)
 	{
-		x = 0; y = 0; r1 = 0; r2 = 0;
+		//x = 0; y = 0; r1 = 0; r2 = 0;
+        x.store(0, store_memory_order);
+        y.store(0, store_memory_order);
+        r1.store(0, store_memory_order);
+        r2.store(0, store_memory_order);
 		//sema_1.signal();
 		//sema_2.signal();
 		//end_sema.wait();
 		//end_sema.wait();
 
         detected_total++;
-		if (r1 == 0 && r2 == 0)
+        int _r1 = r1.load(load_memory_order);
+        int _r2 = r2.load(load_memory_order);
+		if (_r1 == 0 && _r2 == 0)
 			detected_0_0++;
-		else if (r1 == 0 && r2 == 1)
+		else if (_r1 == 0 && _r2 == 1)
 			detected_0_1++;
-		else if (r1 == 1 && r2 == 0)
+		else if (_r1 == 1 && _r2 == 0)
 			detected_1_0++;
-		else if (r1 == 1 && r2 == 1)
+		else if (_r1 == 1 && _r2 == 1)
 			detected_1_1++;
-        else
+        else {
             detected_other++;   // Other unknown result.
+            printf("Error: r1 = %d, r2 = %d\n", _r1, _r2);
+        }
 	}
 
     exit_flag.store(false);
@@ -152,10 +160,15 @@ void test_semaphore()
 	std::atomic<int> x, y, r1, r2;
     std::atomic<bool> exit_flag = true;
 
+#if 1
+    x = 0; y = 0; r1 = 0; r2 = 0;
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+#else
     x.store(0, std::memory_order_seq_cst);
     y.store(0, std::memory_order_seq_cst);
     r1.store(0, std::memory_order_seq_cst);
     r2.store(0, std::memory_order_seq_cst);
+#endif
 
     printf("--------------------------------------------------------------------\n");
     printf("test_semaphore():\n\n");
@@ -188,8 +201,8 @@ void test_semaphore()
 				while (std::rand() % 8 != 0);
 
 				// transaction thread 1
-				x.store(1);
-				r1.store(y.load());
+				x.store(1, store_memory_order);
+				r1.store(y.load(load_memory_order), store_memory_order);
 				///////////////////////
 
 				end_sema.signal();
@@ -207,8 +220,8 @@ void test_semaphore()
 			    while (std::rand() % 8 != 0);
 
 			    // transaction thread 2
-			    y.store(1);
-			    r2.store(x.load());
+			    y.store(1, store_memory_order);
+			    r2.store(x.load(load_memory_order), store_memory_order);
 			    ///////////////////////
 
 			    end_sema.signal();
@@ -221,23 +234,31 @@ void test_semaphore()
     size_t detected_other = 0, detected_total = 0;
 	for (auto iterations = 0; iterations < max_iterations; ++iterations)
 	{
-		x = 0; y = 0; r1 = 0; r2 = 0;
+		//x = 0; y = 0; r1 = 0; r2 = 0;
+        x.store(0, store_memory_order);
+        y.store(0, store_memory_order);
+        r1.store(0, store_memory_order);
+        r2.store(0, store_memory_order);
 		sema_1.signal();
 		sema_2.signal();
 		end_sema.wait();
 		end_sema.wait();
 
         detected_total++;
-		if (r1 == 0 && r2 == 0)
+        int _r1 = r1.load(load_memory_order);
+        int _r2 = r2.load(load_memory_order);
+		if (_r1 == 0 && _r2 == 0)
 			detected_0_0++;
-		else if (r1 == 0 && r2 == 1)
+		else if (_r1 == 0 && _r2 == 1)
 			detected_0_1++;
-		else if (r1 == 1 && r2 == 0)
+		else if (_r1 == 1 && _r2 == 0)
 			detected_1_0++;
-		else if (r1 == 1 && r2 == 1)
+		else if (_r1 == 1 && _r2 == 1)
 			detected_1_1++;
-        else
+        else {
             detected_other++;   // Other unknown result.
+            printf("Error: r1 = %d, r2 = %d\n", _r1, _r2);
+        }
 	}
 
     exit_flag.store(false);
