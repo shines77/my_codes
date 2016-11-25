@@ -76,7 +76,7 @@ void append_list_entry(linkedlist * entry)
 bool remove_list_entry(linkedlist * entry)
 {
     assert(entry != nullptr);
-    if (head == entry) {
+    if (entry == head) {
         head = head->next;
         if (entry == tail)
             tail = head;
@@ -108,7 +108,7 @@ bool remove_list_entry2(linkedlist * entry)
     if (head == nullptr)
         return false;
 
-    if (head == entry) {
+    if (entry == head) {
         head = head->next;
         if (entry == tail)
             tail = head;
@@ -146,7 +146,7 @@ bool remove_list_entry_fast(linkedlist * entry)
     }
 
     // Notes: iter->next = entry->next;
-    // if (head == entry && head == tail) {
+    // if (entry == head && head == tail) {
     if (head == tail) {
         tail = entry->next;
     }
