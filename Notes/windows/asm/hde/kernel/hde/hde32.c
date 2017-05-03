@@ -5,8 +5,8 @@
  *
  */
 
-#include "hde/table32.h"
 #include "hde/hde32.h"
+#include "hde/table32.h"
 
 #include <string.h>
 
