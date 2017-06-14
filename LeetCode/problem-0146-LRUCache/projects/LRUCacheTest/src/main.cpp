@@ -10,6 +10,9 @@ using namespace LeetCode;
 
 int main(int argc, char * argv[])
 {
+    printf("\n");
+    printf("LRUCacheTest()\n\n");
+
     LRUCache<int, int> lruCache(100);
 
     lruCache.put(1, 1);
