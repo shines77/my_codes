@@ -23,4 +23,6 @@ https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
 
 https://leetcode.com/problems/lru-cache/
 
-[(Enter the problem-0146 on this repository)](./problem-0146-LRUCache-old/)
+[(Enter the problem-0146 on this repository)](./problem-0146-LRUCache/)
+
+[(Enter the problem-0146-old on this repository)](./problem-0146-LRUCache-old/)
