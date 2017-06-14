@@ -11,6 +11,8 @@
 
 #include "LRUItem.h"
 
+#include <assert.h>
+
 namespace LeetCode {
 
 template <typename KeyT, typename ValueT>
@@ -54,6 +56,65 @@ public:
         return (sizes() == 0);
     }
 
+    item_type * insert_fast(key_type key, value_type value) {
+        assert(size_ <= capacity_);
+        item_type * new_item = &list_[size_];
+        assert(new_item != nullptr);
+        new_item->key   = key;
+        new_item->value = value;
+        assert(head_ != nullptr);
+        new_item->prev  = head_;
+        new_item->next  = head_->next;
+
+        // Adjust the head item.
+        head_->next->prev = new_item;
+        head_->next       = new_item;
+        size_++;
+        return new_item;
+    }
+
+    item_type * insert(key_type key, value_type value) {
+        assert(size_ <= capacity_);
+        if (size_ < capacity_) {
+            return insert_fast(key, value);
+        }
+        return nullptr;
+    }
+
+    void remove_fast(item_type * item) {
+        assert(item != nullptr);
+        item_type * prev = item->prev;
+        item_type * next = item->next;
+        assert(prev != nullptr);
+        prev->next = next;
+        assert(next != nullptr);
+        next->prev = prev;
+    }
+
+    bool remove(item_type * item) {
+        assert(item != nullptr);
+        item_type * prev = item->prev;
+        item_type * next = item->next;
+        if (prev != nullptr && next != nullptr) {
+            prev->next = next;
+            next->prev = prev;
+            return true;
+        }
+        return false;
+    }
+
+    void print() {
+        item_type * item = head_->next;
+        int index = 0;
+        printf("LRUCache: (size = %u, capacity = %u)\n", (uint32_t)size_, (uint32_t)capacity_);
+        while (item && item->next) {            
+            printf("[%4d]  key: %6d, value: %6d\n", index + 1, item->key, item->value);
+            index++;
+            item = item->next;
+        }
+        printf("\n\n");
+    }
+
 protected:
     void init() {
         if (capacity_ > 0) {
@@ -70,6 +131,18 @@ protected:
 
                 list_ = new_list;
                 ::memset(list_, 0, sizeof(item_type) * capacity_);
+            }
+        }
+        else {
+            item_type * new_item1 = new item_type;
+            item_type * new_item2 = new item_type;
+            if (new_item1 && new_item2) {
+                head_ = new_item1;
+                tail_ = new_item2;
+                head_->prev = nullptr;
+                head_->next = tail_;
+                tail_->prev = head_;
+                tail_->next = nullptr;
             }
         }
     }

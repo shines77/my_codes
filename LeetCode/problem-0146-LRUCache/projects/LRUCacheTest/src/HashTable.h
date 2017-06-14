@@ -19,11 +19,11 @@ public:
     typedef KeyT key_type;
     typedef ValueT value_type;
     typedef uint32_t hash_type;
-    typedef LRUItem<key_type, value_type> node_type;
+    typedef LRUItem<key_type, value_type> item_type;
 
     struct HashNode {
         key_type    key;
-        node_type * node;
+        item_type * node;
     };
 
     static const size_t kCapacity = 32;
@@ -99,12 +99,12 @@ protected:
     }
 
 public:
-    node_type * find(key_type key) {
-        node_type * node = nullptr;
-        return node;
+    item_type * find(key_type key) {
+        item_type * item = nullptr;
+        return item;
     }
 
-    void insert(key_type key, node_type * node) {
+    void insert(key_type key, item_type * item) {
         //
     }
 

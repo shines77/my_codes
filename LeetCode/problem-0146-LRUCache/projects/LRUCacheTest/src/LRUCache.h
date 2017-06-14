@@ -23,24 +23,30 @@ public:
     typedef LRUHashTable<key_type, value_type> hashtable_type;
     typedef FixedDoubleLinkedList<key_type, value_type> linkedlist_type;
 
-private:
-    size_t size_;
-    size_t capacity_;
+    static const size_t kCapacity;
 
-    hashtable_type cache_;
+private:
+    size_t capacity_;
     linkedlist_type list_;
+    hashtable_type cache_;
 
 public:
-    LRUCache() : size_(0), capacity_(0), list_() {
+    LRUCache() : capacity_(kCapacity), list_(kCapacity), cache_(kCapacity) {
         //
     }
 
-    LRUCache(size_t capacity) : size_(0), capacity_(capacity), list_(capacity) {
+    LRUCache(size_t capacity) : capacity_(capacity), list_(capacity), cache_(capacity) {
         //
     }
+
+    size_t sizes() const { return list_.sizes(); }
+    size_t capacity() const { return list_.capacity(); }
 
     void insert(key_type key, value_type value) {
-        //
+        item_type * new_item = list_.insert_fast(key, value);
+        if (new_item) {
+            cache_.insert(key, new_item);
+        }
     }
 
     void touch(key_type key, value_type value) {
@@ -70,13 +76,17 @@ public:
             touch(item, value);
         }
         else {
-            if (size_ >= capacity_) {
+            if (list_.sizes() >= capacity_) {
                 touch(key, value);
             }
             else {
                 insert(key, value);
             }
         }
+    }
+
+    void print() {
+        list_.print();
     }
 };
 

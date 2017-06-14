@@ -22,6 +22,8 @@ int main(int argc, char * argv[])
     lruCache.get(3);       // returns 3
     lruCache.get(4);       // returns 4
 
+    lruCache.print();
+
 #if defined(WIN32) || defined(_WIN32) || defined(OS_WINDOWS) || defined(_WINDOWS)
     ::system("pause");
 #endif
