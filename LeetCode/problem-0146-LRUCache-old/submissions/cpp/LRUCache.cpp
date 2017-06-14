@@ -1,4 +1,12 @@
 
+//
+// See: https://leetcode.com/submissions/detail/26838843/
+//
+// Runtime: 70 ms
+//
+
+#include <assert.h>
+
 struct LRUItem {
     int         key;
     int         value;
@@ -159,8 +167,8 @@ private:
     HashTable   mHashTable;
 
 public:
-    LRUCache(int capacity) : mSize(0), mCapacity(capacity), mHashTable(capacity)
-    {
+    LRUCache(int capacity)
+        : mSize(0), mCapacity(capacity), mHashTable(capacity) {
         mCacheList = new LRUItem[capacity];
         mCacheListLast = mCacheList;
 
@@ -182,6 +190,8 @@ public:
         mCacheListLast++;
         mSize++;
 
+        assert(mSize <= mCapacity);
+
         newItem->key   = key;
         newItem->value = value;
         newItem->prev  = NULL;
@@ -191,71 +201,74 @@ public:
         mHashTable.add(key, newItem);
 
         if (mHeadItem != NULL) {
-            // Record the recent used item.
+            // Record the head item (the recent used item).
             mHeadItem->prev = newItem;
             mHeadItem = newItem;
         }
         else {
-            // Record the recent used item and the last used item.
+            // If mHeadItem is null, mTailItem must be null.
+            assert(mTailItem == NULL);
+            // Record the head and tail item (the recent used item and the last used item).
             mHeadItem = mTailItem = newItem;
         }
     }
 
     void eliminateItem(int key, int value) {
-        LRUItem * tailItem = mTailItem;
-        if (key != tailItem->key) {
+        LRUItem * oldTailItem = mTailItem;
+        if (key != oldTailItem->key) {
             // Remove a key
-            mHashTable.remove(tailItem->key);
+            mHashTable.remove(oldTailItem->key);
             // Add a key
-            mHashTable.add(key, tailItem);
+            mHashTable.add(key, oldTailItem);
 
-            tailItem->key = key;
+            oldTailItem->key = key;
         }
-        tailItem->value = value;
+        oldTailItem->value = value;
 
-        LRUItem * newTailItem = tailItem->prev;
+        LRUItem * newTailItem = oldTailItem->prev;
         if (newTailItem) {
+            // Record the new tail item (the last used item).
             newTailItem->next = NULL;
-            // Record the last used item
             mTailItem = newTailItem;
         }
-        tailItem->prev = NULL;
+        oldTailItem->prev = NULL;
 
         // To avoid their own point to themselves.
-        if (tailItem != mHeadItem) {
-            tailItem->next = mHeadItem;
+        if (oldTailItem != mHeadItem) {
+            oldTailItem->next = mHeadItem;
 
-            // Record the recent used item
-            mHeadItem->prev = tailItem;
-            mHeadItem = tailItem;
+            // Record the head item (the recent used item).
+            mHeadItem->prev = oldTailItem;
+            mHeadItem = oldTailItem;
         }
-        else tailItem->next = NULL;
+        else {
+            oldTailItem->next = NULL;
+        }
     }
 
-    void pickupItem(LRUItem * cacheItem, int value) {
+    void pickupItem(LRUItem * newItem, int value) {
         // Modify the value directly.
-        cacheItem->value = value;
+        newItem->value = value;
 
-        if (cacheItem != mHeadItem) {
-            if (cacheItem != mTailItem) {
-                // It's not head and not tail.
-                cacheItem->prev->next = cacheItem->next;
-                cacheItem->next->prev = cacheItem->prev;
+        if (newItem != mHeadItem) {
+            if (newItem != mTailItem) {
+                // It's not head or tail item.
+                newItem->prev->next = newItem->next;
+                newItem->next->prev = newItem->prev;
             }
             else {
-                // Record the last used item.
-                cacheItem->prev->next = NULL;
-                mTailItem = cacheItem->prev;
+                // It's the tail item, record the new tail item (the last used item).
+                newItem->prev->next = NULL;
+                mTailItem = newItem->prev;
             }
 
-            // Link the old head item to new head item.
-            cacheItem->prev = NULL;
-            cacheItem->next = mHeadItem;
+            // Insert new head item to the header and
+            // record the recent used item (the head item).
+            newItem->prev = NULL;
+            newItem->next = mHeadItem;
 
-            // Modify the recent used item.
-            mHeadItem->prev = cacheItem;
-            // Record the recent used item.
-            mHeadItem = cacheItem;
+            mHeadItem->prev = newItem;
+            mHeadItem = newItem;
         }
     }
 
@@ -264,30 +277,30 @@ public:
     }
 
     int get(int key) {
-        LRUItem * foundItem = find(key);
-        if (foundItem) {
-            pickupItem(foundItem, foundItem->value);
-            return foundItem->value;
+        LRUItem * item = find(key);
+        if (item) {
+            pickupItem(item, item->value);
+            return item->value;
         }
         return -1;
     }
 
     void set(int key, int value) {
-        LRUItem * foundItem = find(key);
-        if (foundItem == NULL) {
+        LRUItem * item = find(key);
+        if (item == NULL) {
             // It's a new key.
             if (mSize < mCapacity) {
                 // The cache list capacity is not full, append a new item to head only.
                 appendItem(key, value);
             }
             else {
-                // The cache list capacity is full, must be eliminate a item.
+                // The cache list capacity is full, must be eliminate a item and pickup it to head.
                 eliminateItem(key, value);
             }
         }
         else {
             // Pickup the item to head.
-            pickupItem(foundItem, value);
+            pickupItem(item, value);
         }
     }
 };
