@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-project(LURCacheTest)
+project(LRUCacheTest)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -64,5 +64,5 @@ add_custom_target(release
     COMMENT "Switch CMAKE_BUILD_TYPE to Release"
 )
 
-add_executable(LURCacheTest ${SOURCE_FILES})
-target_link_libraries(LURCacheTest ${EXTRA_LIBS})
+add_executable(LRUCacheTest ${SOURCE_FILES})
+target_link_libraries(LRUCacheTest ${EXTRA_LIBS})
