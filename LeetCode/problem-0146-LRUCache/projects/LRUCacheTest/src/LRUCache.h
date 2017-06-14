@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include "HashTable.h"
+#include "LinkedList.h"
 
 namespace LeetCode {
 
@@ -17,21 +18,24 @@ class LRUCache {
 public:
     typedef KeyT key_type;
     typedef ValueT value_type;
-    typedef LRUHashTable<key_type, value_type> hashtable_type;
+
     typedef LRUItem<key_type, value_type> item_type;
+    typedef LRUHashTable<key_type, value_type> hashtable_type;
+    typedef FixedDoubleLinkedList<key_type, value_type> linkedlist_type;
 
 private:
     size_t size_;
     size_t capacity_;
 
     hashtable_type cache_;
+    linkedlist_type list_;
 
 public:
-    LRUCache() : size_(0), capacity_(0) {
+    LRUCache() : size_(0), capacity_(0), list_() {
         //
     }
 
-    LRUCache(size_t capacity) : size_(0), capacity_(capacity) {
+    LRUCache(size_t capacity) : size_(0), capacity_(capacity), list_(capacity) {
         //
     }
 
