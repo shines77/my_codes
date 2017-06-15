@@ -58,20 +58,23 @@ public:
 
     void realloc(size_t new_capacity) {
         if (new_capacity > capacity_) {
-            if (list_) {
-                delete [] list_;
-            }
             item_type * new_list = new item_type[new_capacity];
             if (new_list) {
                 assert(size_ <= capacity_);
                 // Fill unused items and new alloc items.
                 ::memset(new_list + size_, 0, sizeof(item_type) * (new_capacity - size_));
-                // Copy first [size_] items.
-                ::memcpy((void *)new_list, (const void *)list_, sizeof(item_type) * size_);
+                if (list_) {
+                    // Copy first [size_] items.
+                    ::memcpy((void *)new_list, (const void *)list_, sizeof(item_type) * size_);
+                    delete [] list_;
+                }
                 list_ = new_list;
             }
         }
-        if (new_capacity < size_) {
+        if (new_capacity >= size_) {
+            capacity_ = new_capacity;
+        }
+        else {
             intptr_t remove_items = (size_ - new_capacity);
             // Remove last [remove_items] items, adjust the tail item.
             assert(tail_ != nullptr);
@@ -85,8 +88,8 @@ public:
                 }
             }
             size_ = new_capacity;
+            capacity_ = new_capacity;
         }
-        capacity_ = new_capacity;
     }
 
     void resize(size_t new_capacity) {
