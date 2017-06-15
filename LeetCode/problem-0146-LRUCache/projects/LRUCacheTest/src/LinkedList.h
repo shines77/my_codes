@@ -56,6 +56,62 @@ public:
         return (sizes() == 0);
     }
 
+    void realloc(size_t new_capacity) {
+        if (new_capacity > capacity_) {
+            if (list_) {
+                delete [] list_;
+            }
+            item_type * new_list = new item_type[new_capacity];
+            if (new_list) {
+                assert(size_ <= capacity_);
+                // Fill unused items and new alloc items.
+                ::memset(new_list + size_, 0, sizeof(item_type) * (new_capacity - size_));
+                // Copy first [size_] items.
+                ::memcpy((void *)new_list, (const void *)list_, sizeof(item_type) * size_);
+                list_ = new_list;
+            }
+        }
+        if (new_capacity < size_) {
+            intptr_t remove_items = (size_ - new_capacity);
+            // Remove last [remove_items] items, adjust the tail item.
+            assert(tail_ != nullptr);
+            item_type * item = tail_->prev;
+            while (item != nullptr && item->prev != nullptr) {
+                item = item->prev;
+                remove_items--;
+                if (remove_items <= 0) {
+                    tail_->prev = item;
+                    break;
+                }
+            }
+            size_ = new_capacity;
+        }
+        capacity_ = new_capacity;
+    }
+
+    void resize(size_t new_capacity) {
+        if (list_) {
+            delete [] list_;
+        }
+        item_type * new_list = new item_type[new_capacity];
+        if (new_list) {
+            ::memset(new_list, 0, sizeof(item_type) * new_capacity);
+        }
+        list_ = new_list;
+
+        size_ = 0;
+        capacity_ = new_capacity;
+
+        head_->prev = nullptr;
+        head_->next = tail_;
+        tail_->prev = head_;
+        tail_->next = nullptr;
+    }
+
+    void resize_preserve(size_t new_capacity) {
+        return realloc(new_capacity);
+    }
+
     item_type * insert_fast(key_type key, value_type value) {
         assert(size_ <= capacity_);
         item_type * new_item = &list_[size_];
