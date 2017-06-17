@@ -7,7 +7,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="singly_linkedlist_test.cc">
+    <ClCompile Include="singly_linkedlist_test.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
