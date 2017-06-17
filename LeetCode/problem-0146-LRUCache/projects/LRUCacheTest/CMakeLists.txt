@@ -28,8 +28,11 @@ else()
 endif()
 
 if (NOT MSVC)
+    ##
     ## -Wall -Werror -Wextra -Wno-format -Wno-unused-function
-    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unused-function -Wno-deprecated-declarations -Wno-unused-variable -fPIC")
+    ## -fprofile-arcs is enable __builtin_expect(x) function in likely() and unlikely() macros.
+    ##
+    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unused-function -Wno-deprecated-declarations -Wno-unused-variable -fPIC -fprofile-arcs")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEFAULT} -O3 -DNDEBUG")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEFAULT} -g -pg -D_DEBUG")
 endif()
