@@ -16,12 +16,14 @@
     #define unlikely(x)     (x)
   #endif
 #else
+#ifndef __builtin_expect
   #ifndef likely
     #define likely(x)       __builtin_expect((x), 1)
   #endif
   #ifndef unlikely
     #define unlikely(x)     __builtin_expect((x), 0)
   #endif
+#endif // __builtin_expect
 #endif
 
 #ifndef noif
