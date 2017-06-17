@@ -52,9 +52,7 @@ public:
     size_t sizes() const { return size_; }
     size_t capacity() const { return capacity_; }
 
-    bool is_empty() const {
-        return (sizes() == 0);
-    }
+    bool is_empty() const { return (sizes() == 0); }
 
     void realloc(size_t new_capacity) {
         if (new_capacity > capacity_) {
@@ -219,6 +217,8 @@ protected:
             delete [] list_;
             list_ = nullptr;
         }
+        size_ = 0;
+        capacity_ = 0;
     }
 };
 

@@ -66,6 +66,11 @@ public:
         capacity_ = 0;
     }
 
+    size_t sizes() const { return size_; }
+    size_t capacity() const { return capacity_; }
+
+    bool is_empty() const { return (sizes() == 0); }
+
 protected:
     hash_type getHash1(key_type key) const {
         return (hash_type)(key & mask_);
