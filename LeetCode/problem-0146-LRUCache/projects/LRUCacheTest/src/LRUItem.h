@@ -25,7 +25,7 @@
 #endif
 
 #ifndef noif
-  #define noif(x)     (false)
+  #define noif(expr)    ((void)0);
 #endif
 
 namespace LeetCode {
