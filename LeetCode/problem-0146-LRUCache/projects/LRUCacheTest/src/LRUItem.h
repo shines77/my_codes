@@ -10,20 +10,18 @@
 
 #if defined(_MSC_VER)
   #ifndef likely
-    #define likely(x)       (x)
+    #define likely(expr)    (expr)
   #endif
   #ifndef unlikely
-    #define unlikely(x)     (x)
+    #define unlikely(expr)  (expr)
   #endif
 #else
-#ifndef __builtin_expect
   #ifndef likely
-    #define likely(x)       __builtin_expect((x), 1)
+    #define likely(expr)    __builtin_expect(!!(expr), 1)
   #endif
   #ifndef unlikely
-    #define unlikely(x)     __builtin_expect((x), 0)
+    #define unlikely(expr)  __builtin_expect(!!(expr), 0)
   #endif
-#endif // __builtin_expect
 #endif
 
 #ifndef noif
