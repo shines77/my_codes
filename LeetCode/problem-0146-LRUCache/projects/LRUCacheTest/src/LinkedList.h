@@ -34,14 +34,14 @@ private:
 
 public:
     FixedDoubleLinkedList()
-        : size_(0), capacity_(kDefaultCapacity), list_(nullptr),
-          head_(nullptr), tail_(nullptr) {
+        : size_(0), capacity_(kDefaultCapacity),
+          head_(nullptr), tail_(nullptr), list_(nullptr) {
         init();
     }
 
     FixedDoubleLinkedList(size_t capacity)
-        : size_(0), capacity_(capacity), list_(nullptr),
-          head_(nullptr), tail_(nullptr) {
+        : size_(0), capacity_(capacity),
+          head_(nullptr), tail_(nullptr), list_(nullptr) {
         init();
     }
 

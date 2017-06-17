@@ -222,7 +222,7 @@ public:
     inline void remove_fast(HashNode * node) {
         assert(node != nullptr);
         assert((node >= table1_ && node < &table1_[capacity_]) ||
-               (node >= table2_ && node < &table2_[capacity_]))
+               (node >= table2_ && node < &table2_[capacity_]));
         node->key = LRUKey::EmptyKey;
         assert(size_ > 0);
         size_--;
