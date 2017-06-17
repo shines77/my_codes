@@ -83,11 +83,12 @@ public:
         } while (startPtr != endPtr);
 
         int indexB = getHashB(key);
-        int startIndex = indexB;
+        int startIndexB = indexB;
         do {
             if (mTableB[indexB].key >= 0 && mTableB[indexB].key != key) {
                 indexB = (indexB + 1) & mMask;
-                if (indexB != startIndex) continue;
+                if (indexB == startIndexB)
+                    break;
             }
             else {
                 mTableB[indexB].key = key;
@@ -111,14 +112,17 @@ public:
         } while (startPtr != endPtr);
 
         int indexB = getHashB(key);
-        int startIndex = indexB;
+        int startIndexB = indexB;
         do {
             if (mTableB[indexB].key != key) {
                 if (mTableB[indexB].key != -1) {
                     indexB = (indexB + 1) & mMask;
-                    if (indexB != startIndex) continue;
+                    if (indexB == startIndexB)
+                        break;
                 }
-                else return NULL;
+                else {
+                    return NULL;
+                }
             }
             else return mTableB[indexB].value;
         } while (1);
@@ -142,11 +146,12 @@ public:
         } while (startPtr != endPtr);
 
         int indexB = getHashB(key);
-        int startIndex = indexB;
+        int startIndexB = indexB;
         do {
             if (mTableB[indexB].key != key) {
                 indexB = (indexB + 1) & mMask;
-                if (indexB != startIndex) continue;
+                if (indexB == startIndexB)
+                    break;
             }
             else {
                 mTableB[indexB].key = -2;

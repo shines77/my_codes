@@ -8,7 +8,31 @@
 
 #include <stdint.h>
 
+#if defined(_MSC_VER)
+  #ifndef unlikely
+    #define unlikely(x)     (x)
+  #endif
+#endif
+
+#ifndef noif
+  #define noif(x)     (false)
+#endif
+
 namespace LeetCode {
+
+struct LRUKey {
+    enum  {
+        EmptyKey = -2,
+        UnusedKey = -1,
+        ValidKey = 0
+    };
+};
+
+struct LRUValue {
+    enum  {
+        FailedValue = -1
+    };
+};
 
 template <typename KeyT, typename ValueT>
 struct LRUItem {

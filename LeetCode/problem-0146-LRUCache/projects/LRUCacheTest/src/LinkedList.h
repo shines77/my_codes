@@ -15,14 +15,14 @@
 
 namespace LeetCode {
 
-template <typename KeyT, typename ValueT>
+template <typename ItemT>
 class FixedDoubleLinkedList {
 public:
-    typedef KeyT key_type;
-    typedef ValueT value_type;
-    typedef LRUItem<key_type, value_type> item_type;
+    typedef ItemT item_type;
+    typedef typename item_type::key_type key_type;
+    typedef typename item_type::value_type value_type;
 
-    static const size_t kCapacity = 16;
+    static const size_t kDefaultCapacity = 32;
 
 private:
     size_t size_;
@@ -34,7 +34,7 @@ private:
 
 public:
     FixedDoubleLinkedList()
-        : size_(0), capacity_(kCapacity), list_(nullptr),
+        : size_(0), capacity_(kDefaultCapacity), list_(nullptr),
           head_(nullptr), tail_(nullptr) {
         init();
     }
