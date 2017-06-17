@@ -39,7 +39,9 @@ function check_pathname()
     echo ${sPathName}
 }
 
-function check_extname()
+## Does the detection at the end of the path file name contain the specified extension name?
+## If contain return 1, else return 0.
+function has_extname()
 {
     local in_file=$1
     local ext_name=$2
@@ -66,7 +68,15 @@ function check_extname()
     echo 0
 }
 
-function scan_and_cd_dir_impl()
+##
+## If filename is "*.gz" but isn't "*.tar.gz", then copy and backup it become "*.gz.sav",
+## else echo the filename on the screen.
+##
+## If filename is "*.sav.sav" or "*.json.sav", then remove it.
+##
+## Otherwise echo the filename on the screen.
+##
+function scan_dir_impl()
 {
     local work_dir
     local cur_dir
@@ -84,20 +94,20 @@ function scan_and_cd_dir_impl()
         if [ -d "$file" ]; then
             cd "$file"
             cur_file="${cur_dir}/${file}"
-            scan_and_cd_dir_impl "$cur_file"
+            scan_dir_impl "$cur_file"
             cd ..
         else
             cur_file="${cur_dir}/${file}"
-            if [ $(check_extname "$cur_file" ".gz") -eq 1 ]; then
-                if [ $(check_extname "$cur_file" ".tar.gz") -eq 0 ]; then
+            if [ $(has_extname "$cur_file" ".gz") -eq 1 ]; then
+                if [ $(has_extname "$cur_file" ".tar.gz") -eq 0 ]; then
                     echo_red $cur_file
                     cp -f "$cur_file" "${cur_file}.sav"
                     gzip -d "$cur_file"
                 else
                     echo $cur_file
                 fi
-            elif [[ $(check_extname "$cur_file" ".sav.sav") -eq 1 || \
-                $(check_extname "$cur_file" ".json.sav") -eq 1 ]]; then
+            elif [[ $(has_extname "$cur_file" ".sav.sav") -eq 1 || \
+                $(has_extname "$cur_file" ".json.sav") -eq 1 ]]; then
                 echo_red $cur_file
                 rm -f "$cur_file"
             else
@@ -107,11 +117,11 @@ function scan_and_cd_dir_impl()
     done
 }
 
-//
-// See: http://www.wenzizone.cn/?p=313
-// See: http://blog.csdn.net/ztguang/article/details/51012013
-//
-function scan_and_cd_dir()
+##
+## See: http://www.wenzizone.cn/?p=313
+## See: http://blog.csdn.net/ztguang/article/details/51012013
+##
+function scan_dir()
 {
     local work_dir
     work_dir=$1
@@ -119,14 +129,14 @@ function scan_and_cd_dir()
         echo_red "\nError: The directory not specified.\n"
         echo -e "Usage: ./scan_dir.sh {directory}\n"
     elif [ -d "$work_dir" ]; then
-        scan_and_cd_dir_impl $work_dir
+        scan_dir_impl $work_dir
     elif [ -f "$work_dir" ]; then
         echo "work_dir = $work_dir"
         echo_red "The argument isn't a directory, it's a filename, we will trace the directory name!!"
         #work_dir=$(check_pathname "$work_dir")
         work_dir=`dirname "$work_dir"`
         echo_red "The directory name is: $work_dir"
-        scan_and_cd_dir_impl "$work_dir"
+        scan_dir_impl "$work_dir"
     else
         echo_red "The directory that you input isn't existed, please reinput and try again!!"
         exit 1
@@ -136,20 +146,22 @@ function scan_and_cd_dir()
 function uint_test()
 {
     file="/usr/lib/ambari-server/web/data/abcd.json"
-    value=$(check_extname "$file" ".gz")
+    value=$(has_extname "$file" ".gz")
     echo "file = $file"
     echo "value = $value"
 
     file="/usr/lib/ambari-server/web/data/abcd.json.sav.sav"
-    value=$(check_extname "$file" ".sav.sav")
+    value=$(has_extname "$file" ".sav.sav")
     echo "file = $file"
     echo "value = $value"
 }
 
 ##
-## Example: ./scan_dir.sh /usr/lib/ambari-server/web/data
-## Example: ./scan_dir.sh /usr/lib/ambari-server/web/data/alerts
-## Example: ./scan_dir.sh /usr/lib/ambari-server/web/data/alerts/alert_instances_history.json.gz.sav.sav
+## Example commands:
+##
+##   scan_dir.sh /usr/lib/ambari-server/web/data
+##   scan_dir.sh /usr/lib/ambari-server/web/data/alerts
+##   scan_dir.sh /usr/lib/ambari-server/web/data/alerts/alert_instances_history.json.gz.sav.sav
 ##
 
 set -e
@@ -158,6 +170,8 @@ set -e
 # exit 1
 
 in_dir=$1
+
 # echo "in_dir = $in_dir"
 # exit 1
-scan_and_cd_dir "$in_dir"
+
+scan_dir "$in_dir"
