@@ -24,6 +24,7 @@ int main(int argc, char * argv[])
     lruCache.get(1);       // returns -1 (not found)
     lruCache.get(3);       // returns 3
     lruCache.get(4);       // returns 4
+    lruCache.put(2, 12);   // evicts key 2
 
     lruCache.print();
 

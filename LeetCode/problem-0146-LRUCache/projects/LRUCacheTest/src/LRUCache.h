@@ -23,7 +23,7 @@ public:
     typedef LRUItem<key_type, value_type> item_type;
     typedef LRUHashTable<key_type, item_type *> hash_table_type;
     typedef typename hash_table_type::HashNode hash_node_type;
-    typedef FixedDoubleLinkedList<item_type> linkedlist_type;
+    typedef ContinuousDoubleLinkedList<item_type> linkedlist_type;
 
     static const size_t kDefaultCapacity = 32;
 

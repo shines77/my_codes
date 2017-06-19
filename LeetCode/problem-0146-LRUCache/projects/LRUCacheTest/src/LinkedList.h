@@ -15,8 +15,10 @@
 
 namespace LeetCode {
 
+// ContinuousDoubleLinkedList
+
 template <typename ItemT>
-class FixedDoubleLinkedList {
+class ContinuousDoubleLinkedList {
 public:
     typedef ItemT item_type;
     typedef typename item_type::key_type key_type;
@@ -33,19 +35,19 @@ private:
     item_type * list_;
 
 public:
-    FixedDoubleLinkedList()
+    ContinuousDoubleLinkedList()
         : size_(0), capacity_(kDefaultCapacity),
           head_(nullptr), tail_(nullptr), list_(nullptr) {
         init();
     }
 
-    FixedDoubleLinkedList(size_t capacity)
+    ContinuousDoubleLinkedList(size_t capacity)
         : size_(0), capacity_(capacity),
           head_(nullptr), tail_(nullptr), list_(nullptr) {
         init();
     }
 
-    ~FixedDoubleLinkedList() {
+    ~ContinuousDoubleLinkedList() {
         free();
     }
 
@@ -59,7 +61,7 @@ public:
         int index = 0;
         printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);
         while (item && item->next) {            
-            printf("[%4d]  key: %6d, value: %6d\n", index + 1, item->key, item->value);
+            printf("[%3d]  key: %6d, value: %6d\n", index + 1, item->key, item->value);
             index++;
             item = item->next;
         }
@@ -71,8 +73,10 @@ public:
             item_type * new_list = new item_type[new_capacity];
             if (new_list) {
                 assert(size_ <= capacity_);
+#if 0
                 // Fill unused items and new alloc items.
                 ::memset(new_list + size_, 0, sizeof(item_type) * (new_capacity - size_));
+#endif
                 if (list_) {
                     // Copy first [size_] items.
                     ::memcpy((void *)new_list, (const void *)list_, sizeof(item_type) * size_);
@@ -107,9 +111,11 @@ public:
             delete [] list_;
         }
         item_type * new_list = new item_type[new_capacity];
+#if 0
         if (new_list) {
             ::memset(new_list, 0, sizeof(item_type) * new_capacity);
         }
+#endif
         list_ = new_list;
 
         size_ = 0;
@@ -122,7 +128,7 @@ public:
     }
 
     item_type * insert_fast(key_type key, value_type value) {
-        assert(size_ <= capacity_);
+        assert(size_ < capacity_);
         item_type * new_item = &list_[size_];
         assert(new_item != nullptr);
         new_item->key   = key;
@@ -135,6 +141,7 @@ public:
         head_->next->prev = new_item;
         head_->next       = new_item;
         size_++;
+        assert(size_ <= capacity_);
         return new_item;
     }
 
@@ -165,6 +172,7 @@ public:
         if (prev != nullptr && next != nullptr) {
             prev->next = next;
             next->prev = prev;
+            assert(size_ >= 1);
             size_--;
             return true;
         }
@@ -181,6 +189,7 @@ public:
         head_->next->prev = item;
         head_->next       = item;
         size_++;
+        assert(size_ <= capacity_);
     }
 
     void push_back(item_type * item) {
@@ -193,6 +202,7 @@ public:
         tail_->prev->next = item;
         tail_->prev       = item;
         size_++;
+        assert(size_ <= capacity_);
     }
 
     item_type * pop_front() {
@@ -240,6 +250,27 @@ public:
         head_->next       = item;
     }
 
+    void move_to_back(item_type * item) {
+        // remove_fast(item);
+        assert(item != nullptr);
+        item_type * prev = item->prev;
+        item_type * next = item->next;
+        assert(prev != nullptr);
+        prev->next = next;
+        assert(next != nullptr);
+        next->prev = prev;
+        
+        // push_back(item);
+        assert(tail_ != nullptr);
+        assert(item != tail_);
+        item->prev = tail_->prev;
+        item->next = tail_;
+
+        // Adjust the tail item.
+        tail_->prev->next = item;
+        tail_->prev       = item;
+    }
+
 protected:
     void init() {
         if (capacity_ > 0) {
@@ -255,7 +286,9 @@ protected:
                 tail_->next = nullptr;
 
                 list_ = new_list;
+#if 0
                 ::memset(list_, 0, sizeof(item_type) * capacity_);
+#endif
             }
         }
         else {
