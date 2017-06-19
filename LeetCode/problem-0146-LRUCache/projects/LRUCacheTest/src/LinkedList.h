@@ -54,6 +54,18 @@ public:
 
     bool is_empty() const { return (sizes() == 0); }
 
+    void print() {
+        item_type * item = head_->next;
+        int index = 0;
+        printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);
+        while (item && item->next) {            
+            printf("[%4d]  key: %6d, value: %6d\n", index + 1, item->key, item->value);
+            index++;
+            item = item->next;
+        }
+        printf("\n\n");
+    }
+
     void realloc(size_t new_capacity) {
         if (new_capacity > capacity_) {
             item_type * new_list = new item_type[new_capacity];
@@ -226,18 +238,6 @@ public:
         // Adjust the head item.
         head_->next->prev = item;
         head_->next       = item;
-    }
-
-    void print() {
-        item_type * item = head_->next;
-        int index = 0;
-        printf("LRUCache: (size = %u, capacity = %u)\n", (uint32_t)size_, (uint32_t)capacity_);
-        while (item && item->next) {            
-            printf("[%4d]  key: %6d, value: %6d\n", index + 1, item->key, item->value);
-            index++;
-            item = item->next;
-        }
-        printf("\n\n");
     }
 
 protected:
