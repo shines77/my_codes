@@ -109,10 +109,6 @@ public:
         tail_->next = nullptr;
     }
 
-    void resize_preserve(size_t new_capacity) {
-        return realloc(new_capacity);
-    }
-
     item_type * insert_fast(key_type key, value_type value) {
         assert(size_ <= capacity_);
         item_type * new_item = &list_[size_];
@@ -146,6 +142,8 @@ public:
         prev->next = next;
         assert(next != nullptr);
         next->prev = prev;
+        assert(size_ >= 1);
+        size_--;
     }
 
     bool remove(item_type * item) {
@@ -155,9 +153,79 @@ public:
         if (prev != nullptr && next != nullptr) {
             prev->next = next;
             next->prev = prev;
+            size_--;
             return true;
         }
         return false;
+    }
+
+    void push_front(item_type * item) {
+        assert(head_ != nullptr);
+        assert(item != head_);
+        item->prev = head_;
+        item->next = head_->next;
+
+        // Adjust the head item.
+        head_->next->prev = item;
+        head_->next       = item;
+        size_++;
+    }
+
+    void push_back(item_type * item) {
+        assert(tail_ != nullptr);
+        assert(item != tail_);
+        item->prev = tail_->prev;
+        item->next = tail_;
+
+        // Adjust the tail item.
+        tail_->prev->next = item;
+        tail_->prev       = item;
+        size_++;
+    }
+
+    item_type * pop_front() {
+        item_type * item = head_->next;
+        assert(item != nullptr);
+        if (item != tail_) {
+            remove_fast(item);
+            return item;
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    item_type * pop_back() {
+        item_type * item = tail_->prev;
+        assert(item != nullptr);
+        if (item != head_) {
+            remove_fast(item);
+            return item;
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    void move_to_front(item_type * item) {
+        // remove_fast(item);
+        assert(item != nullptr);
+        item_type * prev = item->prev;
+        item_type * next = item->next;
+        assert(prev != nullptr);
+        prev->next = next;
+        assert(next != nullptr);
+        next->prev = prev;
+        
+        // push_front(item);
+        assert(head_ != nullptr);
+        assert(item != head_);
+        item->prev = head_;
+        item->next = head_->next;
+
+        // Adjust the head item.
+        head_->next->prev = item;
+        head_->next       = item;
     }
 
     void print() {

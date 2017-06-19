@@ -84,16 +84,27 @@ protected:
         }
     }
 
-    void touch(key_type key, value_type value) {
-        //
-    }
-
     void touch(item_type * item) {
-        //
+        list_.move_to_front(item);
     }
 
     void touch(item_type * item, value_type value) {
-        //
+        item->value = value;
+        list_.move_to_front(item);
+    }
+
+    void touch(key_type key, value_type value) {
+        // Pop the last item.
+        item_type * last = list_.pop_back();
+        if (last != nullptr) {
+            // Set the new key and value.
+            last->key = key;
+            last->value = value;
+            // Push the last item to head again.
+            list_.push_front(last);
+            // Insert the new key and value to hash table.
+            cache_.insert(key, last);
+        }
     }
 };
 
