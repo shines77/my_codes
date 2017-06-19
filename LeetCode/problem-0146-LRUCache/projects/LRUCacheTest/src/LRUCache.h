@@ -49,6 +49,7 @@ public:
         if (node != nullptr) {
             item_type * item = node->value;
             assert(item != nullptr);
+            assert(key == item->key);
             touch(item);
             return item->value;
         }
@@ -60,7 +61,7 @@ public:
         if (node != nullptr) {
             item_type * item = node->value;
             assert(item != nullptr);
-            touch(item, value);
+            touch(item, key, value);
         }
         else {
             if (list_.sizes() >= capacity_) {
@@ -85,10 +86,14 @@ protected:
     }
 
     void touch(item_type * item) {
+        assert(item != nullptr);
         list_.move_to_front(item);
     }
 
-    void touch(item_type * item, value_type value) {
+    void touch(item_type * item, key_type key, value_type value) {
+        assert(item != nullptr);
+        assert(key == item->key);
+        item->key = key;
         item->value = value;
         list_.move_to_front(item);
     }
@@ -97,13 +102,17 @@ protected:
         // Pop the last item.
         item_type * last = list_.pop_back();
         if (last != nullptr) {
+            if (key != last->key) {
+                // Remove the old key from the hash table.
+                cache_.remove(last->key);
+                // Insert the new key and value to the hash table.
+                cache_.insert(key, last);
+            }
             // Set the new key and value.
             last->key = key;
             last->value = value;
             // Push the last item to head again.
             list_.push_front(last);
-            // Insert the new key and value to hash table.
-            cache_.insert(key, last);
         }
     }
 };
