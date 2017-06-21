@@ -28,5 +28,8 @@
     <ClInclude Include="src\LRUItem.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\LRUCacheOnline.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

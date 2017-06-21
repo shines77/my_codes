@@ -273,36 +273,23 @@ public:
 
 protected:
     void init() {
-        if (capacity_ > 0) {
-            item_type * new_item1 = new item_type;
-            item_type * new_item2 = new item_type;
-            item_type * new_list = new item_type[capacity_];
-            if (new_item1 && new_item2 && new_list) {
-                head_ = new_item1;
-                tail_ = new_item2;
-                head_->prev = nullptr;
-                head_->next = tail_;
-                tail_->prev = head_;
-                tail_->next = nullptr;
+        item_type * new_item1 = new item_type;
+        item_type * new_item2 = new item_type;
+        if (new_item1 && new_item2) {
+            head_ = new_item1;
+            tail_ = new_item2;
+            head_->prev = nullptr;
+            head_->next = tail_;
+            tail_->prev = head_;
+            tail_->next = nullptr;
+        }
 
-                list_ = new_list;
-#if 0
-                ::memset(list_, 0, sizeof(item_type) * capacity_);
-#endif
-            }
+        item_type * new_list = nullptr;
+        if (capacity_ > 0) {
+            new_list = new item_type[capacity_];
+            // In fact, we needn't initialize the list items.
         }
-        else {
-            item_type * new_item1 = new item_type;
-            item_type * new_item2 = new item_type;
-            if (new_item1 && new_item2) {
-                head_ = new_item1;
-                tail_ = new_item2;
-                head_->prev = nullptr;
-                head_->next = tail_;
-                tail_->prev = head_;
-                tail_->next = nullptr;
-            }
-        }
+        list_ = new_list;
     }
 
     void free() {

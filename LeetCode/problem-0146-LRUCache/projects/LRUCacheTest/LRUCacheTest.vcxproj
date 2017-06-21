@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\HashTable.h" />
+    <ClInclude Include="src\LRUCacheOnline.h" />
     <ClInclude Include="src\LinkedList.h" />
     <ClInclude Include="src\LRUCache.h" />
     <ClInclude Include="src\LRUItem.h" />

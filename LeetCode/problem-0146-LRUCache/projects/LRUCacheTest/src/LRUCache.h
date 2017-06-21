@@ -12,10 +12,15 @@
 #include "HashTable.h"
 #include "LinkedList.h"
 
+//
+// Problem title: 146. LRU Cache
+// Problem URL: https://leetcode.com/problems/lru-cache/
+//
+
 namespace LeetCode {
 
 template <typename KeyT, typename ValueT, ValueT kFailedValue = LRUValue::FailedValue>
-class LRUCache {
+class LRUCacheBase {
 public:
     typedef KeyT key_type;
     typedef ValueT value_type;
@@ -33,12 +38,16 @@ private:
     hash_table_type cache_;
 
 public:
-    LRUCache() : capacity_(kDefaultCapacity), list_(kDefaultCapacity), cache_(kDefaultCapacity) {
-        //
+    LRUCacheBase() : capacity_(kDefaultCapacity), list_(kDefaultCapacity), cache_(kDefaultCapacity) {
+        init();
     }
 
-    LRUCache(size_t capacity) : capacity_(capacity), list_(capacity), cache_(capacity) {
-        //
+    LRUCacheBase(size_t capacity) : capacity_(capacity), list_(capacity), cache_(capacity) {
+        init();
+    }
+
+    ~LRUCacheBase() {
+        capacity_ = 0;
     }
 
     size_t sizes() const { return list_.sizes(); }
@@ -78,6 +87,10 @@ public:
     }
 
 protected:
+    void init() {
+        // Do nothing!!
+    }
+
     void insert(key_type key, value_type value) {
         item_type * new_item = list_.insert_fast(key, value);
         if (new_item) {
@@ -104,11 +117,11 @@ protected:
         if (last != nullptr) {
             if (key != last->key) {
                 // Remove the old key from the hash table.
-                cache_.remove(last->key);
+                cache_.remove_fast(last->key);
                 // Insert the new key and value to the hash table.
                 cache_.insert(key, last);
             }
-            // Set the new key and value.
+            // Save the new key and value.
             last->key = key;
             last->value = value;
             // Push the last item to head again.
@@ -116,6 +129,8 @@ protected:
         }
     }
 };
+
+typedef LRUCacheBase<int, int> LRUCache;
 
 } // namespace LeetCode
 
