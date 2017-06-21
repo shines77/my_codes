@@ -39,11 +39,9 @@ private:
 
 public:
     LRUCacheBase() : capacity_(kDefaultCapacity), list_(kDefaultCapacity), cache_(kDefaultCapacity) {
-        init();
     }
 
     LRUCacheBase(size_t capacity) : capacity_(capacity), list_(capacity), cache_(capacity) {
-        init();
     }
 
     ~LRUCacheBase() {
@@ -70,7 +68,10 @@ public:
         if (node != nullptr) {
             item_type * item = node->value;
             assert(item != nullptr);
-            touch(item, key, value);
+            assert(key == item->key);
+            //item->key = key;
+            item->value = value;
+            touch(item);
         }
         else {
             if (list_.sizes() >= capacity_) {
@@ -87,10 +88,6 @@ public:
     }
 
 protected:
-    void init() {
-        // Do nothing!!
-    }
-
     void insert(key_type key, value_type value) {
         item_type * new_item = list_.insert_fast(key, value);
         if (new_item) {
@@ -100,14 +97,6 @@ protected:
 
     void touch(item_type * item) {
         assert(item != nullptr);
-        list_.move_to_front(item);
-    }
-
-    void touch(item_type * item, key_type key, value_type value) {
-        assert(item != nullptr);
-        assert(key == item->key);
-        item->key = key;
-        item->value = value;
         list_.move_to_front(item);
     }
 

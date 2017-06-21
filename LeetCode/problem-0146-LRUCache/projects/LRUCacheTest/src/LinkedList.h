@@ -68,15 +68,20 @@ public:
         printf("\n\n");
     }
 
-    void realloc(size_t new_capacity) {
+    void clear() {
+        size_ = 0;
+
+        head_->prev = nullptr;
+        head_->next = tail_;
+        tail_->prev = head_;
+        tail_->next = nullptr;
+    }
+
+    void resize(size_t new_capacity) {
         if (new_capacity > capacity_) {
             item_type * new_list = new item_type[new_capacity];
             if (new_list) {
                 assert(size_ <= capacity_);
-#if 0
-                // Fill unused items and new alloc items.
-                ::memset(new_list + size_, 0, sizeof(item_type) * (new_capacity - size_));
-#endif
                 if (list_) {
                     // Copy first [size_] items.
                     ::memcpy((void *)new_list, (const void *)list_, sizeof(item_type) * size_);
@@ -90,7 +95,7 @@ public:
         }
         else {
             intptr_t remove_items = (size_ - new_capacity);
-            // Remove last [remove_items] items, adjust the tail item.
+            // Remove last [remove_items] items, adjust the tail node.
             assert(tail_ != nullptr);
             item_type * item = tail_->prev;
             while (item != nullptr && item->prev != nullptr) {
@@ -106,16 +111,11 @@ public:
         }
     }
 
-    void resize(size_t new_capacity) {
+    void reset(size_t new_capacity) {
         if (list_) {
             delete [] list_;
         }
         item_type * new_list = new item_type[new_capacity];
-#if 0
-        if (new_list) {
-            ::memset(new_list, 0, sizeof(item_type) * new_capacity);
-        }
-#endif
         list_ = new_list;
 
         size_ = 0;
@@ -133,15 +133,7 @@ public:
         assert(new_item != nullptr);
         new_item->key   = key;
         new_item->value = value;
-        assert(head_ != nullptr);
-        new_item->prev  = head_;
-        new_item->next  = head_->next;
-
-        // Adjust the head item.
-        head_->next->prev = new_item;
-        head_->next       = new_item;
-        size_++;
-        assert(size_ <= capacity_);
+        push_front(new_item);
         return new_item;
     }
 
@@ -182,10 +174,11 @@ public:
     void push_front(item_type * item) {
         assert(head_ != nullptr);
         assert(item != head_);
+        // Inserted into the behind of the head node.
         item->prev = head_;
         item->next = head_->next;
 
-        // Adjust the head item.
+        // Adjust the head node.
         head_->next->prev = item;
         head_->next       = item;
         size_++;
@@ -195,10 +188,11 @@ public:
     void push_back(item_type * item) {
         assert(tail_ != nullptr);
         assert(item != tail_);
+        // Inserted into the front of the tail node.
         item->prev = tail_->prev;
         item->next = tail_;
 
-        // Adjust the tail item.
+        // Adjust the tail node.
         tail_->prev->next = item;
         tail_->prev       = item;
         size_++;
@@ -245,7 +239,7 @@ public:
         item->prev = head_;
         item->next = head_->next;
 
-        // Adjust the head item.
+        // Adjust the head node.
         head_->next->prev = item;
         head_->next       = item;
     }
@@ -266,7 +260,7 @@ public:
         item->prev = tail_->prev;
         item->next = tail_;
 
-        // Adjust the tail item.
+        // Adjust the tail node.
         tail_->prev->next = item;
         tail_->prev       = item;
     }

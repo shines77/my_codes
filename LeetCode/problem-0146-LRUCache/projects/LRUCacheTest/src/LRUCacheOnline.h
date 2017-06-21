@@ -282,7 +282,7 @@ public:
         hash_node_type * node = cache_.find(key);
         if (node != nullptr) {
             item_type * item = node->value;
-            item->key = key;
+            //item->key = key;
             item->value = value;
             touch(item);
         }
