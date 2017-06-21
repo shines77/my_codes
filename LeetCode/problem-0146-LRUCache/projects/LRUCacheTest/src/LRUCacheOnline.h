@@ -36,7 +36,8 @@ private:
     HashNode * table1_;
     HashNode * table2_;
 public:
-    LRUHashTable(size_t capacity) : size_(0), capacity_(capacity), mask_(size_t(-1)) {
+    LRUHashTable(size_t capacity) : size_(0), capacity_(capacity), mask_(size_t(-1)),
+        table1_(nullptr), table2_(nullptr) {
         size_ = 0;
         capacity_ = calcCapacity(capacity);
         mask_ = capacity_ - 1;
