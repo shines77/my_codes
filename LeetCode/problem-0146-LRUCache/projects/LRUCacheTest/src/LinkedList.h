@@ -6,21 +6,23 @@
 #pragma once
 #endif
 
+#include "LRUItem.h"
+
 #include <stdint.h>
 #include <memory.h>
-
-#include "LRUItem.h"
 
 #include <assert.h>
 
 namespace LeetCode {
 
-// ContinuousDoubleLinkedList
+//
+// class ContinuousDoubleLinkedList<T>
+//
 
-template <typename ItemT>
+template <typename ItemTy>
 class ContinuousDoubleLinkedList {
 public:
-    typedef ItemT item_type;
+    typedef ItemTy item_type;
     typedef typename item_type::key_type key_type;
     typedef typename item_type::value_type value_type;
 

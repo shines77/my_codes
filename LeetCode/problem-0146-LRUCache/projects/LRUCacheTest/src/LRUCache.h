@@ -6,11 +6,11 @@
 #pragma once
 #endif
 
-#include <stdint.h>
-
 #include "LRUItem.h"
-#include "HashTable.h"
+#include "LRUHashTable.h"
 #include "LinkedList.h"
+
+#include <stdint.h>
 
 //
 // Problem title: 146. LRU Cache
@@ -19,11 +19,11 @@
 
 namespace LeetCode {
 
-template <typename KeyT, typename ValueT, ValueT kFailedValue = LRUValue::FailedValue>
+template <typename KeyTy, typename ValueTy, ValueTy kFailedValue = LRUValue::FailedValue>
 class LRUCacheBase {
 public:
-    typedef KeyT key_type;
-    typedef ValueT value_type;
+    typedef KeyTy key_type;
+    typedef ValueTy value_type;
 
     typedef LRUItem<key_type, value_type> item_type;
     typedef LRUHashTable<key_type, item_type *> hash_table_type;

@@ -1,25 +1,25 @@
 
-#ifndef LEETCODE_HASHTABLE_H
-#define LEETCODE_HASHTABLE_H
+#ifndef LEETCODE_LRUHASHTABLE_H
+#define LEETCODE_LRUHASHTABLE_H
 
 #if defined(_MSC_VER) && (_MSC_VER > 1200)
 #pragma once
 #endif
 
+#include "LRUItem.h"
+
 #include <stdint.h>
 #include <memory.h>
-
-#include "LRUItem.h"
 
 #include <assert.h>
 
 namespace LeetCode {
 
-template <typename KeyT, typename ValueT>
+template <typename KeyTy, typename ValueTy>
 class LRUHashTable {
 public:
-    typedef KeyT key_type;
-    typedef ValueT value_type;
+    typedef KeyTy key_type;
+    typedef ValueTy value_type;
     typedef uint32_t hash_type;
 
     struct HashNode {
@@ -265,4 +265,4 @@ public:
 
 } // namespace LeetCode
 
-#endif // LEETCODE_HASHTABLE_H
+#endif // LEETCODE_LRUHASHTABLE_H

@@ -8,20 +8,20 @@
 #endif
 struct LRUKey { enum { EmptyKey = -2, UnusedKey = -1, ValidKey = 0 }; };
 struct LRUValue { enum { FailedValue = -1 }; };
-template <typename KeyT, typename ValueT>
+template <typename KeyTy, typename ValueTy>
 struct LRUItem {
-    typedef KeyT key_type;
-    typedef ValueT value_type;
+    typedef KeyTy key_type;
+    typedef ValueTy value_type;
     key_type key;
     value_type value;
     LRUItem<key_type, value_type> * prev;
     LRUItem<key_type, value_type> * next;
 };
-template <typename KeyT, typename ValueT>
+template <typename KeyTy, typename ValueTy>
 class LRUHashTable {
 public:
-    typedef KeyT key_type;
-    typedef ValueT value_type;
+    typedef KeyTy key_type;
+    typedef ValueTy value_type;
     typedef uint32_t hash_type;
     struct HashNode {
         key_type key;
@@ -161,10 +161,10 @@ protected:
         return newCapacity;
     }
 };
-template <typename ItemT>
+template <typename ItemTy>
 class ContinuousDoubleLinkedList {
 public:
-    typedef ItemT item_type;
+    typedef ItemTy item_type;
     typedef typename item_type::key_type key_type;
     typedef typename item_type::value_type value_type;
     static const size_t kDefaultCapacity = 32;
@@ -250,11 +250,11 @@ protected:
         capacity_ = 0;
     }
 };
-template <typename KeyT, typename ValueT>
+template <typename KeyTy, typename ValueTy>
 class LRUCacheBase {
 public:
-    typedef KeyT key_type;
-    typedef ValueT value_type;
+    typedef KeyTy key_type;
+    typedef ValueTy value_type;
     typedef LRUItem<key_type, value_type> item_type;
     typedef LRUHashTable<key_type, item_type *> hash_table_type;
     typedef typename hash_table_type::HashNode hash_node_type;

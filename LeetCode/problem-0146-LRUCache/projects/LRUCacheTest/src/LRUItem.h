@@ -44,10 +44,10 @@ struct LRUValue {
     };
 };
 
-template <typename KeyT, typename ValueT>
+template <typename KeyTy, typename ValueTy>
 struct LRUItem {
-    typedef KeyT key_type;
-    typedef ValueT value_type;
+    typedef KeyTy key_type;
+    typedef ValueTy value_type;
     typedef LRUItem<key_type, value_type> this_type;
 
     key_type    key;
