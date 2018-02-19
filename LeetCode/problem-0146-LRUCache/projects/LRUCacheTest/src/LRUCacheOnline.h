@@ -22,11 +22,12 @@ class LRUHashTable {
 public:
     typedef KeyTy key_type;
     typedef ValueTy value_type;
-    typedef uint32_t hash_type;
+    typedef uint32_t hash_value_type;
     struct HashNode {
         key_type key;
         value_type value;
     };
+    typedef HashNode node_type;
     static const size_t kDefaultCapacity = 32;
     static const uint32_t kFirstLayerSearchStep = 6;
 private:
@@ -134,8 +135,8 @@ public:
         }
     }
 protected:
-    hash_type getHash1(key_type key) const { return (hash_type)(key & mask_); }
-    hash_type getHash2(key_type key) const { return (hash_type)((key ^ 4491719) & mask_); }
+    hash_value_type getHash1(key_type key) const { return (hash_value_type)(key & mask_); }
+    hash_value_type getHash2(key_type key) const { return (hash_value_type)((key ^ 4491719) & mask_); }
     void init() {
         HashNode * new_table = new HashNode[capacity_];
         if (new_table) {
@@ -257,7 +258,7 @@ public:
     typedef ValueTy value_type;
     typedef LRUItem<key_type, value_type> item_type;
     typedef LRUHashTable<key_type, item_type *> hash_table_type;
-    typedef typename hash_table_type::HashNode hash_node_type;
+    typedef typename hash_table_type::node_type hash_node_type;
     typedef ContinuousDoubleLinkedList<item_type> linkedlist_type;
     static const size_t kDefaultCapacity = 32;
 private:
@@ -269,7 +270,7 @@ public:
     ~LRUCacheBase() { }
     size_t sizes() const { return list_.sizes(); }
     size_t capacity() const { return list_.capacity(); }
-    value_type get(key_type key) {
+    value_type get(const key_type & key) {
         hash_node_type * node = cache_.find(key);
         if (node != nullptr) {
             item_type * item = node->value;
@@ -278,7 +279,7 @@ public:
         }
         return LRUValue::FailedValue;
     }
-    void put(key_type key, value_type value) {
+    void put(const key_type & key, const value_type & value) {
         hash_node_type * node = cache_.find(key);
         if (node != nullptr) {
             item_type * item = node->value;
@@ -294,7 +295,7 @@ public:
         }
     }
 protected:
-    void insert(key_type key, value_type value) {
+    void insert(const key_type & key, const value_type & value) {
         item_type * new_item = list_.insert_fast(key, value);
         if (new_item)
             cache_.insert(key, new_item);
@@ -302,7 +303,7 @@ protected:
     void touch(item_type * item) {
         list_.move_to_front(item);
     }
-    void touch(key_type key, value_type value) {
+    void touch(const key_type & key, const value_type & value) {
         item_type * last = list_.pop_back();
         if (last != nullptr) {
             if (key != last->key) {

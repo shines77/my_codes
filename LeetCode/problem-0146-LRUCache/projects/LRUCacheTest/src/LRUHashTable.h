@@ -20,12 +20,13 @@ class LRUHashTable {
 public:
     typedef KeyTy key_type;
     typedef ValueTy value_type;
-    typedef uint32_t hash_type;
+    typedef uint32_t hash_value_type;
 
     struct HashNode {
         key_type   key;
         value_type value;
     };
+    typedef HashNode node_type;
 
     static const size_t kDefaultCapacity = 32;
     static const uint32_t kFirstLayerSearchStep = 6;
@@ -74,13 +75,13 @@ public:
     bool is_empty() const { return (sizes() == 0); }
 
 protected:
-    hash_type getHash1(key_type key) const {
-        return (hash_type)(key & mask_);
+    hash_value_type getHash1(key_type key) const {
+        return (hash_value_type)(key & mask_);
     }
 
-    hash_type getHash2(key_type key) const {
+    hash_value_type getHash2(key_type key) const {
         // Xor value: 4491719(prime), 4491738, 4491749(prime)
-        return (hash_type)((key ^ 4491719) & mask_);
+        return (hash_value_type)((key ^ 4491719) & mask_);
     }
 
     void init() {
