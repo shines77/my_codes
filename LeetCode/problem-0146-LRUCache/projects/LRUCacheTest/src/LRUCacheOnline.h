@@ -180,9 +180,25 @@ public:
         head_(nullptr), tail_(nullptr), list_(nullptr) {
         init();
     }
-    ~ContinuousDoubleLinkedList() { /* free(); */ }
+    ~ContinuousDoubleLinkedList() { /* destroy(); */ }
     size_t sizes() const { return size_; }
     size_t capacity() const { return capacity_; }
+    void destroy() {
+        if (head_) {
+            delete head_;
+            head_ = nullptr;
+        }
+        if (tail_) {
+            delete tail_;
+            tail_ = nullptr;
+        }
+        if (list_) {
+            delete[] list_;
+            list_ = nullptr;
+        }
+        size_ = 0;
+        capacity_ = 0;
+    }
     item_type * insert_fast(key_type key, value_type value) {
         item_type * new_item = &list_[size_];
         new_item->key = key;
@@ -232,22 +248,6 @@ protected:
         if (capacity_ > 0)
             new_list = new item_type[capacity_];
         list_ = new_list;
-    }
-    void free() {
-        if (head_) {
-            delete head_;
-            head_ = nullptr;
-        }
-        if (tail_) {
-            delete tail_;
-            tail_ = nullptr;
-        }
-        if (list_) {
-            delete[] list_;
-            list_ = nullptr;
-        }
-        size_ = 0;
-        capacity_ = 0;
     }
 };
 template <typename KeyTy, typename ValueTy>
