@@ -99,7 +99,7 @@ protected:
 
     void touch(item_type * item) {
         assert(item != nullptr);
-        list_.move_to_front(item);
+        list_.bring_to_front(item);
     }
 
     void touch(const key_type & key, const value_type & value) {

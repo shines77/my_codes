@@ -230,7 +230,7 @@ public:
         }
     }
 
-    void move_to_front(item_type * item) {
+    void bring_to_front(item_type * item) {
         // remove_fast(item);
         assert(item != nullptr);
         item_type * prev = item->prev;

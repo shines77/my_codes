@@ -229,7 +229,7 @@ public:
         }
         else return nullptr;
     }
-    void move_to_front(item_type * item) {
+    void bring_to_front(item_type * item) {
         remove_fast(item);
         push_front(item);
     }
@@ -301,7 +301,7 @@ protected:
             cache_.insert(key, new_item);
     }
     void touch(item_type * item) {
-        list_.move_to_front(item);
+        list_.bring_to_front(item);
     }
     void touch(const key_type & key, const value_type & value) {
         item_type * last = list_.pop_back();
