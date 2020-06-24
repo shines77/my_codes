@@ -1,6 +1,6 @@
 
-#ifndef LEETCODE_HASHTABLE_H
-#define LEETCODE_HASHTABLE_H
+#ifndef LEETCODE_LRUHASHTABLE_H
+#define LEETCODE_LRUHASHTABLE_H
 
 #if defined(_MSC_VER) && (_MSC_VER > 1200)
 #pragma once
@@ -267,4 +267,4 @@ public:
 
 } // namespace LeetCode
 
-#endif // LEETCODE_HASHTABLE_H
+#endif // LEETCODE_LRUHASHTABLE_H

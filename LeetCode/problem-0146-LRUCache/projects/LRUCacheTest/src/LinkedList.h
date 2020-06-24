@@ -136,31 +136,20 @@ public:
     }
 
     node_type * insert_fast(key_type key, value_type value) {
-        assert(size_ < capacity_);
-        node_type * new_item = &list_[size_];
-        assert(new_item != nullptr);
-        new_item->key   = key;
-        new_item->value = value;
-        push_front(new_item);
-        return new_item;
+        return insert_internal(key, value);
     }
 
     node_type * insert(key_type key, value_type value) {
         assert(size_ <= capacity_);
         if (size_ < capacity_) {
-            return insert_fast(key, value);
+            return insert_internal(key, value);
         }
         return nullptr;
     }
 
     void remove_fast(node_type * node) {
-        assert(node != nullptr);
-        node_type * prev = node->prev;
-        node_type * next = node->next;
-        assert(prev != nullptr);
-        prev->next = next;
-        assert(next != nullptr);
-        next->prev = prev;
+        remove_fast_internal(node);
+
         assert(size_ >= 1);
         size_--;
     }
@@ -180,31 +169,35 @@ public:
     }
 
     void push_front(node_type * node) {
-        assert(head_ != nullptr);
-        assert(node != head_);
-        // Inserted into the behind of the head node.
-        node->prev = head_;
-        node->next = head_->next;
+        push_front_internal(node);
 
-        // Adjust the head node.
-        head_->next->prev = node;
-        head_->next       = node;
         size_++;
         assert(size_ <= capacity_);
     }
 
     void push_back(node_type * node) {
-        assert(tail_ != nullptr);
-        assert(node != tail_);
-        // Inserted into the front of the tail node.
-        node->prev = tail_->prev;
-        node->next = tail_;
+        push_back_internal(node);
 
-        // Adjust the tail node.
-        tail_->prev->next = node;
-        tail_->prev       = node;
         size_++;
         assert(size_ <= capacity_);
+    }
+
+    node_type * front() {
+        node_type * node = head_->next;
+        assert(node != nullptr);
+        if (node != tail_)
+            return node;
+        else
+            return nullptr;
+    }
+
+    node_type * back() {
+        node_type * node = tail_->prev;
+        assert(node != nullptr);
+        if (node != head_)
+            return node;
+        else
+            return nullptr;
     }
 
     node_type * pop_front() {
@@ -232,45 +225,13 @@ public:
     }
 
     void bring_to_front(node_type * node) {
-        // remove_fast(item);
-        assert(node != nullptr);
-        node_type * prev = node->prev;
-        node_type * next = node->next;
-        assert(prev != nullptr);
-        prev->next = next;
-        assert(next != nullptr);
-        next->prev = prev;
-        
-        // push_front(item);
-        assert(head_ != nullptr);
-        assert(node != head_);
-        node->prev = head_;
-        node->next = head_->next;
-
-        // Adjust the head node.
-        head_->next->prev = node;
-        head_->next       = node;
+        remove_fast_internal(node);
+        push_front_internal(node);
     }
 
     void move_to_back(node_type * node) {
-        // remove_fast(node);
-        assert(node != nullptr);
-        node_type * prev = node->prev;
-        node_type * next = node->next;
-        assert(prev != nullptr);
-        prev->next = next;
-        assert(next != nullptr);
-        next->prev = prev;
-        
-        // push_back(node);
-        assert(tail_ != nullptr);
-        assert(node != tail_);
-        node->prev = tail_->prev;
-        node->next = tail_;
-
-        // Adjust the tail node.
-        tail_->prev->next = node;
-        tail_->prev       = node;
+        remove_fast_internal(node);
+        push_back_internal(node);
     }
 
     void print() {
@@ -278,7 +239,7 @@ public:
         int index = 0;
         printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);
         while (node && node->next) {            
-            printf("[%3d]  key: %6d, value: %6d\n", index + 1, node->key, node->value);
+            printf("[%-3d]  key: %-06d, value: %-6d\n", index, node->key, node->value);
             index++;
             node = node->next;
         }
@@ -304,6 +265,52 @@ protected:
             // In fact, we needn't initialize the list items.
         }
         list_ = new_list;
+    }
+
+    node_type * insert_internal(key_type key, value_type value) {
+        assert(size_ < capacity_);
+        node_type * new_item = &list_[size_];
+        assert(new_item != nullptr);
+        new_item->key   = key;
+        new_item->value = value;
+        push_front(new_item);
+        return new_item;
+    }
+
+    void remove_fast_internal(node_type * node) {
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
+        assert(prev != nullptr);
+        prev->next = next;
+        assert(next != nullptr);
+        next->prev = prev;
+    }
+
+    void push_front_internal(node_type * node) {
+        assert(head_ != nullptr);
+        assert(node != head_);
+
+        // Inserted into the behind of the head node.
+        node->prev = head_;
+        node->next = head_->next;
+
+        // Adjust the head node.
+        head_->next->prev = node;
+        head_->next       = node;
+    }
+
+    void push_back_internal(node_type * node) {
+        assert(tail_ != nullptr);
+        assert(node != tail_);
+
+        // Inserted into the front of the tail node.
+        node->prev = tail_->prev;
+        node->next = tail_;
+
+        // Adjust the tail node.
+        tail_->prev->next = node;
+        tail_->prev       = node;
     }
 };
 
