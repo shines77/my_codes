@@ -1,6 +1,6 @@
 
-#ifndef LEETCODE_LRUITEM_H
-#define LEETCODE_LRUITEM_H
+#ifndef LEETCODE_LRUNODE_H
+#define LEETCODE_LRUNODE_H
 
 #if defined(_MSC_VER) && (_MSC_VER > 1200)
 #pragma once
@@ -45,10 +45,10 @@ struct LRUValue {
 };
 
 template <typename KeyT, typename ValueT>
-struct LRUItem {
+struct LRUNode {
     typedef KeyT key_type;
     typedef ValueT value_type;
-    typedef LRUItem<key_type, value_type> this_type;
+    typedef LRUNode<key_type, value_type> this_type;
 
     key_type    key;
     value_type  value;
@@ -58,4 +58,4 @@ struct LRUItem {
 
 } // namespace LeetCode
 
-#endif // LEETCODE_LRUITEM_H
+#endif // LEETCODE_LRUNODE_H

@@ -9,13 +9,13 @@
 struct LRUKey { enum { EmptyKey = -2, UnusedKey = -1, ValidKey = 0 }; };
 struct LRUValue { enum { FailedValue = -1 }; };
 template <typename KeyT, typename ValueT>
-struct LRUItem {
+struct LRUNode {
     typedef KeyT key_type;
     typedef ValueT value_type;
     key_type key;
     value_type value;
-    LRUItem<key_type, value_type> * prev;
-    LRUItem<key_type, value_type> * next;
+    LRUNode<key_type, value_type> * prev;
+    LRUNode<key_type, value_type> * next;
 };
 template <typename KeyT, typename ValueT>
 class LRUHashTable {
@@ -161,19 +161,19 @@ protected:
         return newCapacity;
     }
 };
-template <typename ItemT>
+template <typename NodeT>
 class ContinuousDoubleLinkedList {
 public:
-    typedef ItemT item_type;
-    typedef typename item_type::key_type key_type;
-    typedef typename item_type::value_type value_type;
+    typedef NodeT node_type;
+    typedef typename node_type::key_type key_type;
+    typedef typename node_type::value_type value_type;
     static const size_t kDefaultCapacity = 32;
 private:
     size_t size_;
     size_t capacity_;
-    item_type * head_;
-    item_type * tail_;
-    item_type * list_;
+    node_type * head_;
+    node_type * tail_;
+    node_type * list_;
 public:
     ContinuousDoubleLinkedList(size_t capacity)
         : size_(0), capacity_(capacity),
@@ -183,54 +183,54 @@ public:
     ~ContinuousDoubleLinkedList() { /* free(); */ }
     size_t sizes() const { return size_; }
     size_t capacity() const { return capacity_; }
-    item_type * insert_fast(key_type key, value_type value) {
-        item_type * new_item = &list_[size_];
-        new_item->key = key;
-        new_item->value = value;
-        push_front(new_item);
-        return new_item;
+    node_type * insert_fast(key_type key, value_type value) {
+        node_type * new_node = &list_[size_];
+        new_node->key = key;
+        new_node->value = value;
+        push_front(new_node);
+        return new_node;
     }
-    void remove_fast(item_type * item) {
-        item_type * prev = item->prev;
-        item_type * next = item->next;
+    void remove_fast(node_type * node) {
+        node_type * prev = node->prev;
+        node_type * next = node->next;
         prev->next = next;
         next->prev = prev;
         size_--;
     }
-    void push_front(item_type * item) {
-        item->prev = head_;
-        item->next = head_->next;
-        head_->next->prev = item;
-        head_->next = item;
+    void push_front(node_type * node) {
+        node->prev = head_;
+        node->next = head_->next;
+        head_->next->prev = node;
+        head_->next = node;
         size_++;
     }
-    item_type * pop_back() {
-        item_type * item = tail_->prev;
-        if (item != head_) {
-            remove_fast(item);
-            return item;
+    node_type * pop_back() {
+        node_type * node = tail_->prev;
+        if (node != head_) {
+            remove_fast(node);
+            return node;
         }
         else return nullptr;
     }
-    void move_to_front(item_type * item) {
-        remove_fast(item);
-        push_front(item);
+    void move_to_front(node_type * node) {
+        remove_fast(node);
+        push_front(node);
     }
 protected:
     void init() {
-        item_type * new_item1 = new item_type;
-        item_type * new_item2 = new item_type;
-        if (new_item1 && new_item2) {
-            head_ = new_item1;
-            tail_ = new_item2;
+        node_type * new_node1 = new node_type;
+        node_type * new_node2 = new node_type;
+        if (new_node1 && new_node2) {
+            head_ = new_node1;
+            tail_ = new_node2;
             head_->prev = nullptr;
             head_->next = tail_;
             tail_->prev = head_;
             tail_->next = nullptr;
         }
-        item_type * new_list = nullptr;
+        node_type * new_list = nullptr;
         if (capacity_ > 0)
-            new_list = new item_type[capacity_];
+            new_list = new node_type[capacity_];
         list_ = new_list;
     }
     void free() {
@@ -255,10 +255,10 @@ class LRUCacheBase {
 public:
     typedef KeyT key_type;
     typedef ValueT value_type;
-    typedef LRUItem<key_type, value_type> item_type;
-    typedef LRUHashTable<key_type, item_type *> hash_table_type;
+    typedef LRUNode<key_type, value_type> node_type;
+    typedef LRUHashTable<key_type, node_type *> hash_table_type;
     typedef typename hash_table_type::HashNode hash_node_type;
-    typedef ContinuousDoubleLinkedList<item_type> linkedlist_type;
+    typedef ContinuousDoubleLinkedList<node_type> linkedlist_type;
     static const size_t kDefaultCapacity = 32;
 private:
     size_t capacity_;
@@ -270,21 +270,21 @@ public:
     size_t sizes() const { return list_.sizes(); }
     size_t capacity() const { return list_.capacity(); }
     value_type get(key_type key) {
-        hash_node_type * node = cache_.find(key);
-        if (node != nullptr) {
-            item_type * item = node->value;
-            touch(item);
-            return item->value;
+        hash_node_type * hash_node = cache_.find(key);
+        if (hash_node != nullptr) {
+            node_type * node = hash_node->value;
+            touch(node);
+            return node->value;
         }
         return LRUValue::FailedValue;
     }
     void put(key_type key, value_type value) {
-        hash_node_type * node = cache_.find(key);
-        if (node != nullptr) {
-            item_type * item = node->value;
-            //item->key = key;
-            item->value = value;
-            touch(item);
+        hash_node_type * hash_node = cache_.find(key);
+        if (hash_node != nullptr) {
+            node_type * node = hash_node->value;
+            //node->key = key;
+            node->value = value;
+            touch(node);
         }
         else {
             if (list_.sizes() >= capacity_)
@@ -295,15 +295,15 @@ public:
     }
 protected:
     void insert(key_type key, value_type value) {
-        item_type * new_item = list_.insert_fast(key, value);
-        if (new_item)
-            cache_.insert(key, new_item);
+        node_type * new_node = list_.insert_fast(key, value);
+        if (new_node)
+            cache_.insert(key, new_node);
     }
-    void touch(item_type * item) {
-        list_.move_to_front(item);
+    void touch(node_type * node) {
+        list_.move_to_front(node);
     }
     void touch(key_type key, value_type value) {
-        item_type * last = list_.pop_back();
+        node_type * last = list_.pop_back();
         if (last != nullptr) {
             if (key != last->key) {
                 cache_.remove_fast(last->key);

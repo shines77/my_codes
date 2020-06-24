@@ -7,24 +7,24 @@
 
 #include <assert.h>
 
-struct LRUItem {
+struct LRUNode {
     int         key;
     int         value;
-    LRUItem *   prev;
-    LRUItem *   next;
+    LRUNode *   prev;
+    LRUNode *   next;
 };
 
-struct HashItem {
+struct HashNode {
     int         key;
-    LRUItem *   value;
+    LRUNode *   value;
 };
 
 class HashTable {
 private:
     int         mSize;
     int         mMask;
-    HashItem *  mTableA;
-    HashItem *  mTableB;
+    HashNode *  mTableA;
+    HashNode *  mTableB;
 
     static const unsigned int kMaxQueryStep = 6;
 
@@ -32,10 +32,10 @@ public:
     HashTable(int capacity) {
         mSize = calcSize(capacity);
         mMask = mSize - 1;
-        mTableA = new HashItem[mSize];
-        mTableB = new HashItem[mSize];
-        ::memset(mTableA, -1, sizeof(HashItem) * mSize);
-        ::memset(mTableB, -1, sizeof(HashItem) * mSize);
+        mTableA = new HashNode[mSize];
+        mTableB = new HashNode[mSize];
+        ::memset(mTableA, -1, sizeof(HashNode) * mSize);
+        ::memset(mTableB, -1, sizeof(HashNode) * mSize);
     }
 
     ~HashTable() {
@@ -64,19 +64,19 @@ protected:
     }
 
 public:
-    void add(int key, LRUItem * item) {
+    void add(int key, LRUNode * node) {
         int indexA = getHashA(key);
 
-        HashItem * startPtr = &mTableA[indexA];
-        HashItem * endPtr   = startPtr + kMaxQueryStep;
+        HashNode * startPtr = &mTableA[indexA];
+        HashNode * endPtr   = startPtr + kMaxQueryStep;
         do {
             if (startPtr->key == -1) {
                 startPtr->key   = key;
-                startPtr->value = item;
+                startPtr->value = node;
                 return;
             }
             if (startPtr->key == key) {
-                startPtr->value = item;
+                startPtr->value = node;
                 return;
             }
             startPtr++;
@@ -92,17 +92,17 @@ public:
             }
             else {
                 mTableB[indexB].key = key;
-                mTableB[indexB].value = item;;
+                mTableB[indexB].value = node;;
                 return;
             }
         } while (1);
     }
 
-    LRUItem * find(int key) {
+    LRUNode * find(int key) {
         int indexA = getHashA(key);
 
-        HashItem * startPtr = &mTableA[indexA];
-        HashItem * endPtr   = startPtr + kMaxQueryStep;
+        HashNode * startPtr = &mTableA[indexA];
+        HashNode * endPtr   = startPtr + kMaxQueryStep;
         do {
             if (startPtr->key == key)
                 return startPtr->value;
@@ -133,8 +133,8 @@ public:
     void remove(int key) {
         int indexA = getHashA(key);
 
-        HashItem * startPtr = &mTableA[indexA];
-        HashItem * endPtr   = startPtr + kMaxQueryStep;
+        HashNode * startPtr = &mTableA[indexA];
+        HashNode * endPtr   = startPtr + kMaxQueryStep;
         do {
             if (startPtr->key == key) {
                 startPtr->key = -2;
@@ -165,20 +165,20 @@ class LRUCache {
 private:
     int         mSize;
     int         mCapacity;
-    LRUItem *   mCacheList;
-    LRUItem *   mCacheListLast;
-    LRUItem *   mHeadItem;
-    LRUItem *   mTailItem;
+    LRUNode *   mCacheList;
+    LRUNode *   mCacheListLast;
+    LRUNode *   mHeadNode;
+    LRUNode *   mTailNode;
     HashTable   mHashTable;
 
 public:
     LRUCache(int capacity)
         : mSize(0), mCapacity(capacity), mHashTable(capacity) {
-        mCacheList = new LRUItem[capacity];
+        mCacheList = new LRUNode[capacity];
         mCacheListLast = mCacheList;
 
-        mHeadItem = NULL;
-        mTailItem = NULL;
+        mHeadNode = NULL;
+        mTailNode = NULL;
     }
 
     ~LRUCache() {
@@ -190,122 +190,122 @@ public:
 
     int getSize() { return mSize; }
 
-    void appendItem(int key, int value) {
-        LRUItem * newItem = mCacheListLast;
+    void appendNode(int key, int value) {
+        LRUNode * newNode = mCacheListLast;
         mCacheListLast++;
         mSize++;
 
         assert(mSize <= mCapacity);
 
-        newItem->key   = key;
-        newItem->value = value;
-        newItem->prev  = NULL;
-        newItem->next  = mHeadItem;
+        newNode->key   = key;
+        newNode->value = value;
+        newNode->prev  = NULL;
+        newNode->next  = mHeadNode;
 
         // Add a key
-        mHashTable.add(key, newItem);
+        mHashTable.add(key, newNode);
 
-        if (mHeadItem != NULL) {
-            // Record the head item (the recent used item).
-            mHeadItem->prev = newItem;
-            mHeadItem = newItem;
+        if (mHeadNode != NULL) {
+            // Record the head node (the recent used node).
+            mHeadNode->prev = newNode;
+            mHeadNode = newNode;
         }
         else {
-            // If mHeadItem is null, mTailItem must be null.
-            assert(mTailItem == NULL);
-            // Record the head and tail item (the recent used item and the last used item).
-            mHeadItem = mTailItem = newItem;
+            // If mHeadNode is null, mTailNode must be null.
+            assert(mTailNode == NULL);
+            // Record the head and tail node (the recent used node and the last used node).
+            mHeadNode = mTailNode = newNode;
         }
     }
 
-    void eliminateItem(int key, int value) {
-        LRUItem * oldTailItem = mTailItem;
-        if (key != oldTailItem->key) {
+    void eliminateNode(int key, int value) {
+        LRUNode * oldTailNode = mTailNode;
+        if (key != oldTailNode->key) {
             // Remove a key
-            mHashTable.remove(oldTailItem->key);
+            mHashTable.remove(oldTailNode->key);
             // Add a key
-            mHashTable.add(key, oldTailItem);
+            mHashTable.add(key, oldTailNode);
 
-            oldTailItem->key = key;
+            oldTailNode->key = key;
         }
-        oldTailItem->value = value;
+        oldTailNode->value = value;
 
-        LRUItem * newTailItem = oldTailItem->prev;
-        if (newTailItem) {
-            // Record the new tail item (the last used item).
-            newTailItem->next = NULL;
-            mTailItem = newTailItem;
+        LRUNode * newTailNode = oldTailNode->prev;
+        if (newTailNode) {
+            // Record the new tail node (the last used node).
+            newTailNode->next = NULL;
+            mTailNode = newTailNode;
         }
-        oldTailItem->prev = NULL;
+        oldTailNode->prev = NULL;
 
         // To avoid their own point to themselves.
-        if (oldTailItem != mHeadItem) {
-            oldTailItem->next = mHeadItem;
+        if (oldTailNode != mHeadNode) {
+            oldTailNode->next = mHeadNode;
 
-            // Record the head item (the recent used item).
-            mHeadItem->prev = oldTailItem;
-            mHeadItem = oldTailItem;
+            // Record the head node (the recent used node).
+            mHeadNode->prev = oldTailNode;
+            mHeadNode = oldTailNode;
         }
         else {
-            oldTailItem->next = NULL;
+            oldTailNode->next = NULL;
         }
     }
 
-    void pickupItem(LRUItem * newItem, int value) {
+    void pickupNode(LRUNode * newNode, int value) {
         // Modify the value directly.
-        newItem->value = value;
+        newNode->value = value;
 
-        if (newItem != mHeadItem) {
-            if (newItem != mTailItem) {
-                // It's not head or tail item.
-                newItem->prev->next = newItem->next;
-                newItem->next->prev = newItem->prev;
+        if (newNode != mHeadNode) {
+            if (newNode != mTailNode) {
+                // It's not head or tail node.
+                newNode->prev->next = newNode->next;
+                newNode->next->prev = newNode->prev;
             }
             else {
-                // It's the tail item, record the new tail item (the last used item).
-                newItem->prev->next = NULL;
-                mTailItem = newItem->prev;
+                // It's the tail node, record the new tail node (the last used node).
+                newNode->prev->next = NULL;
+                mTailNode = newNode->prev;
             }
 
-            // Insert new head item to the header and
-            // record the recent used item (the head item).
-            newItem->prev = NULL;
-            newItem->next = mHeadItem;
+            // Insert new head node to the header and
+            // record the recent used node (the head node).
+            newNode->prev = NULL;
+            newNode->next = mHeadNode;
 
-            mHeadItem->prev = newItem;
-            mHeadItem = newItem;
+            mHeadNode->prev = newNode;
+            mHeadNode = newNode;
         }
     }
 
-    LRUItem * find(int key) {
+    LRUNode * find(int key) {
         return mHashTable.find(key);
     }
 
     int get(int key) {
-        LRUItem * item = find(key);
-        if (item) {
-            pickupItem(item, item->value);
-            return item->value;
+        LRUNode * node = find(key);
+        if (node) {
+            pickupNode(node, node->value);
+            return node->value;
         }
         return -1;
     }
 
     void set(int key, int value) {
-        LRUItem * item = find(key);
-        if (item == NULL) {
+        LRUNode * node = find(key);
+        if (node == NULL) {
             // It's a new key.
             if (mSize < mCapacity) {
-                // The cache list capacity is not full, append a new item to head only.
-                appendItem(key, value);
+                // The cache list capacity is not full, append a new node to head only.
+                appendNode(key, value);
             }
             else {
-                // The cache list capacity is full, must be eliminate a item and pickup it to head.
-                eliminateItem(key, value);
+                // The cache list capacity is full, must be eliminate a node and pickup it to head.
+                eliminateNode(key, value);
             }
         }
         else {
-            // Pickup the item to head.
-            pickupItem(item, value);
+            // Pickup the node to head.
+            pickupNode(node, value);
         }
     }
 };

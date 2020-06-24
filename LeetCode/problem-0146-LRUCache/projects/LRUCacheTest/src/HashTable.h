@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <memory.h>
 
-#include "LRUItem.h"
+#include "LRUNode.h"
 
 #include <assert.h>
 
@@ -18,28 +18,29 @@ namespace LeetCode {
 template <typename KeyT, typename ValueT>
 class LRUHashTable {
 public:
-    typedef KeyT key_type;
-    typedef ValueT value_type;
-    typedef uint32_t hash_type;
+    typedef KeyT            key_type;
+    typedef ValueT          value_type;
+    typedef std::size_t     size_type;
+    typedef std::uint32_t   hash_type;
 
     struct HashNode {
         key_type   key;
         value_type value;
     };
 
-    static const size_t kDefaultCapacity = 32;
+    static const size_type kDefaultCapacity = 32;
     static const uint32_t kFirstLayerSearchStep = 6;
 
 private:
-    size_t size_;
-    size_t capacity_;
-    size_t mask_;
+    size_type  size_;
+    size_type  capacity_;
+    hash_type  mask_;
 
     HashNode * table1_;
     HashNode * table2_;
 
 public:
-    LRUHashTable() : size_(0), capacity_(0), mask_(size_t(-1)),
+    LRUHashTable() : size_(0), capacity_(0), mask_(hash_type(-1)),
         table1_(nullptr), table2_(nullptr) {
         size_ = 0;
         capacity_ = kDefaultCapacity;
@@ -47,11 +48,11 @@ public:
         init();
     }
 
-    LRUHashTable(size_t capacity) : size_(0), capacity_(capacity), mask_(size_t(-1)),
+    LRUHashTable(size_t capacity) : size_(0), capacity_(capacity), mask_(hash_type(-1)),
         table1_(nullptr), table2_(nullptr) {
         size_ = 0;
         capacity_ = calcCapacity(capacity);
-        mask_ = capacity_ - 1;
+        mask_ = (hash_type)(capacity_ - 1);
         init();
     }
 
@@ -68,17 +69,17 @@ public:
         capacity_ = 0;
     }
 
-    size_t sizes() const { return size_; }
-    size_t capacity() const { return capacity_; }
+    size_type sizes() const { return size_; }
+    size_type capacity() const { return capacity_; }
 
     bool is_empty() const { return (sizes() == 0); }
 
 protected:
-    hash_type getHash1(key_type key) const {
+    hash_type getHash1(const key_type & key) const {
         return (hash_type)(key & mask_);
     }
 
-    hash_type getHash2(key_type key) const {
+    hash_type getHash2(const key_type & key) const {
         // Xor value: 4491719(prime), 4491738, 4491749(prime)
         return (hash_type)((key ^ 4491719) & mask_);
     }
@@ -114,9 +115,9 @@ protected:
     }
 
 public:
-    HashNode * find(key_type key) {
+    HashNode * find(const key_type & key) {
         // The first layer table.
-        uint32_t index1 = (uint32_t)getHash1(key);
+        hash_type index1 = getHash1(key);
         assert(index1 < capacity_);
 
         HashNode * start = &table1_[index1];
@@ -136,7 +137,7 @@ public:
         } while (start != end);
 
         // The second layer table.
-        uint32_t index2 = (uint32_t)getHash2(key);
+        hash_type index2 = getHash2(key);
         assert(index2 < capacity_);
 
         start = &table2_[index2];
@@ -165,9 +166,9 @@ public:
         return nullptr;
     }
 
-    void insert(key_type key, value_type value) {
+    void insert(const key_type & key, const  value_type & value) {
         // The first layer table.
-        uint32_t index1 = (uint32_t)getHash1(key);
+        hash_type index1 = getHash1(key);
         assert(index1 < capacity_);
 
         HashNode * start = &table1_[index1];
@@ -193,7 +194,7 @@ public:
         } while (start != end);
 
         // The second layer table.
-        uint32_t index2 = (uint32_t)getHash2(key);
+        hash_type index2 = getHash2(key);
         assert(index2 < capacity_);
 
         start = &table2_[index2];
@@ -235,7 +236,7 @@ public:
         size_--;
     }
 
-    void remove_fast(key_type key) {
+    void remove_fast(const key_type & key) {
         HashNode * node = find(key);
         if (node != nullptr) {
             remove_fast(node);
@@ -253,7 +254,7 @@ public:
         return false;
     }
 
-    bool remove(key_type key) {
+    bool remove(const key_type & key) {
         HashNode * node = find(key);
         if (node != nullptr) {
             remove_fast(node);
