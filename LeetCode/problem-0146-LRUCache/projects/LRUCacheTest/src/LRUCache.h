@@ -102,7 +102,6 @@ public:
             node_type * node = hash_node->value;
             assert(node != nullptr);
             assert(key == node->key);
-            //node->key = key;
             node->value = value;
             touch(node);
         }

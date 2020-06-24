@@ -304,7 +304,6 @@ public:
         hash_node_type * hash_node = cache_.find(key);
         if (hash_node != nullptr) {
             node_type * node = hash_node->value;
-            //node->key = key;
             node->value = value;
             touch(node);
         }
