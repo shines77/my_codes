@@ -71,7 +71,7 @@ protected:
         if (last != nullptr) {
             if (key != last->key) {
                 // Remove the old key from the hash table.
-                cache_.remove_fast(last->key);
+                cache_.remove(last->key);
                 // Insert the new key and value to the hash table.
                 cache_.insert(key, last);
             }

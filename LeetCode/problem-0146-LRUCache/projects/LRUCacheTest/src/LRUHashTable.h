@@ -118,8 +118,9 @@ protected:
     inline void remove_node_internal(HashNode * node) {
         assert(node != nullptr);
         assert((node >= table1_ && node < &table1_[capacity_]) ||
-            (node >= table2_ && node < &table2_[capacity_]));
-        node->key = LRUKey::EmptyKey;
+               (node >= table2_ && node < &table2_[capacity_]));
+        assert(node->key != LRUKey::UnusedKey);
+        node->key = LRUKey::UnusedKey;
         assert(size_ > 0);
         size_--;
     }
@@ -201,7 +202,7 @@ public:
         do {
             // If the key is LRUKey::UnusedKey or LRUKey::EmptyKey,
             // insert the new value to first layer.
-            if (unlikely(start->key < LRUKey::ValidKey)) {
+            if (unlikely(start->key == LRUKey::UnusedKey)) {
                 start->key = key;
                 start->value = value;
                 size_++;
@@ -226,7 +227,7 @@ public:
         do {
             // If the key is LRUKey::UnusedKey or LRUKey::EmptyKey,
             // insert the new value to second layer.
-            if (unlikely(start->key < LRUKey::ValidKey)) {
+            if (unlikely(start->key == LRUKey::UnusedKey)) {
                 start->key = key;
                 start->value = value;
                 size_++;
@@ -248,14 +249,14 @@ public:
         } while (1);
     }
 
-    void remove_fast(const key_type & key) {
+    void remove(const key_type & key) {
         HashNode * node = find(key);
         if (node != nullptr) {
             remove_node_internal(node);
         }
     }
 
-    bool remove(const key_type & key) {
+    bool remove_if(const key_type & key) {
         HashNode * node = find(key);
         if (node != nullptr) {
             remove_node_internal(node);

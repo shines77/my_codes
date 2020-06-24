@@ -6,7 +6,7 @@
 #ifndef unlikely
 #define unlikely(expr) __builtin_expect(!!(expr), 0)
 #endif
-struct LRUKey { enum { EmptyKey = -2, UnusedKey = -1, ValidKey = 0 }; };
+struct LRUKey { enum { UnusedKey = -1, ValidKey = 0 }; };
 struct LRUValue { enum { FailedValue = -1 }; };
 template <typename KeyT, typename ValueT>
 struct LRUNode {
@@ -92,7 +92,7 @@ public:
         HashNode * start = &table1_[index1];
         HashNode * end = ((index1 + kFirstLayerSearchStep) <= capacity_) ? (start + kFirstLayerSearchStep) : &table1_[capacity_];
         do {
-            if (unlikely(start->key < LRUKey::ValidKey)) {
+            if (unlikely(start->key == LRUKey::UnusedKey)) {
                 start->key = key;
                 start->value = value;
                 size_++;
@@ -109,7 +109,7 @@ public:
         end = &table2_[capacity_];
         HashNode * origin = start;
         do {
-            if (unlikely(start->key < LRUKey::ValidKey)) {
+            if (unlikely(start->key == LRUKey::UnusedKey)) {
                 start->key = key;
                 start->value = value;
                 size_++;
@@ -126,10 +126,10 @@ public:
                 start = table2_;
         } while (1);
     }
-    void remove_fast(key_type key) {
+    void remove(key_type key) {
         HashNode * node = find(key);
         if (node != nullptr) {
-            node->key = LRUKey::EmptyKey;
+            node->key = LRUKey::UnusedKey;
             size_--;
         }
     }
@@ -212,7 +212,7 @@ public:
         }
         else return nullptr;
     }
-    void move_to_front(node_type * node) {
+    void bring_to_front(node_type * node) {
         remove_fast(node);
         push_front(node);
     }
@@ -276,13 +276,13 @@ protected:
             cache_.insert(key, new_node);
     }
     void touch(node_type * node) {
-        list_.move_to_front(node);
+        list_.bring_to_front(node);
     }
     void touch(key_type key, value_type value) {
         node_type * last = list_.pop_back();
         if (last != nullptr) {
             if (key != last->key) {
-                cache_.remove_fast(last->key);
+                cache_.remove(last->key);
                 cache_.insert(key, last);
             }
             last->key = key;
