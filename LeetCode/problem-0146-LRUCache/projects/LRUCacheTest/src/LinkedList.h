@@ -6,7 +6,7 @@
 #pragma once
 #endif
 
-#include "LRUItem.h"
+#include "LRUNode.h"
 
 #include <stdint.h>
 #include <memory.h>
@@ -19,22 +19,23 @@ namespace LeetCode {
 // class ContinuousDoubleLinkedList<T>
 //
 
-template <typename ItemTy>
+template <typename NodeTy>
 class ContinuousDoubleLinkedList {
 public:
-    typedef ItemTy item_type;
-    typedef typename item_type::key_type key_type;
-    typedef typename item_type::value_type value_type;
+    typedef NodeTy                          node_type;
+    typedef typename node_type::key_type    key_type;
+    typedef typename node_type::value_type  value_type;
+    typedef std::size_t                     size_type;
 
-    static const size_t kDefaultCapacity = 32;
+    static const size_type kDefaultCapacity = 32;
 
 private:
-    size_t size_;
-    size_t capacity_;
+    size_type size_;
+    size_type capacity_;
 
-    item_type * head_;
-    item_type * tail_;
-    item_type * list_;
+    node_type * head_;
+    node_type * tail_;
+    node_type * list_;
 
 public:
     ContinuousDoubleLinkedList()
@@ -43,7 +44,7 @@ public:
         init();
     }
 
-    ContinuousDoubleLinkedList(size_t capacity)
+    ContinuousDoubleLinkedList(size_type capacity)
         : size_(0), capacity_(capacity),
           head_(nullptr), tail_(nullptr), list_(nullptr) {
         init();
@@ -53,8 +54,8 @@ public:
         destroy();
     }
 
-    size_t sizes() const { return size_; }
-    size_t capacity() const { return capacity_; }
+    size_type sizes() const { return size_; }
+    size_type capacity() const { return capacity_; }
 
     bool is_empty() const { return (sizes() == 0); }
 
@@ -84,14 +85,14 @@ public:
         tail_->next = nullptr;
     }
 
-    void resize(size_t new_capacity) {
+    void resize(size_type new_capacity) {
         if (new_capacity > capacity_) {
-            item_type * new_list = new item_type[new_capacity];
+            node_type * new_list = new node_type[new_capacity];
             if (new_list) {
                 assert(size_ <= capacity_);
                 if (list_) {
                     // Copy first [size_] items.
-                    ::memcpy((void *)new_list, (const void *)list_, sizeof(item_type) * size_);
+                    ::memcpy((void *)new_list, (const void *)list_, sizeof(node_type) * size_);
                     delete [] list_;
                 }
                 list_ = new_list;
@@ -101,15 +102,15 @@ public:
             capacity_ = new_capacity;
         }
         else {
-            intptr_t remove_items = (size_ - new_capacity);
-            // Remove last [remove_items] items, adjust the tail node.
+            intptr_t remove_nodes = (size_ - new_capacity);
+            // Remove last [remove_nodes] nodes, adjust the tail node.
             assert(tail_ != nullptr);
-            item_type * item = tail_->prev;
-            while (item != nullptr && item->prev != nullptr) {
-                item = item->prev;
-                remove_items--;
-                if (remove_items <= 0) {
-                    tail_->prev = item;
+            node_type * node = tail_->prev;
+            while (node != nullptr && node->prev != nullptr) {
+                node = node->prev;
+                remove_nodes--;
+                if (remove_nodes <= 0) {
+                    tail_->prev = node;
                     break;
                 }
             }
@@ -118,11 +119,11 @@ public:
         }
     }
 
-    void reset(size_t new_capacity) {
+    void reset(size_type new_capacity) {
         if (list_) {
             delete [] list_;
         }
-        item_type * new_list = new item_type[new_capacity];
+        node_type * new_list = new node_type[new_capacity];
         list_ = new_list;
 
         size_ = 0;
@@ -134,9 +135,9 @@ public:
         tail_->next = nullptr;
     }
 
-    item_type * insert_fast(key_type key, value_type value) {
+    node_type * insert_fast(key_type key, value_type value) {
         assert(size_ < capacity_);
-        item_type * new_item = &list_[size_];
+        node_type * new_item = &list_[size_];
         assert(new_item != nullptr);
         new_item->key   = key;
         new_item->value = value;
@@ -144,7 +145,7 @@ public:
         return new_item;
     }
 
-    item_type * insert(key_type key, value_type value) {
+    node_type * insert(key_type key, value_type value) {
         assert(size_ <= capacity_);
         if (size_ < capacity_) {
             return insert_fast(key, value);
@@ -152,10 +153,10 @@ public:
         return nullptr;
     }
 
-    void remove_fast(item_type * item) {
-        assert(item != nullptr);
-        item_type * prev = item->prev;
-        item_type * next = item->next;
+    void remove_fast(node_type * node) {
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
         assert(prev != nullptr);
         prev->next = next;
         assert(next != nullptr);
@@ -164,10 +165,10 @@ public:
         size_--;
     }
 
-    bool remove(item_type * item) {
-        assert(item != nullptr);
-        item_type * prev = item->prev;
-        item_type * next = item->next;
+    bool remove(node_type * node) {
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
         if (prev != nullptr && next != nullptr) {
             prev->next = next;
             next->prev = prev;
@@ -178,63 +179,63 @@ public:
         return false;
     }
 
-    void push_front(item_type * item) {
+    void push_front(node_type * node) {
         assert(head_ != nullptr);
-        assert(item != head_);
+        assert(node != head_);
         // Inserted into the behind of the head node.
-        item->prev = head_;
-        item->next = head_->next;
+        node->prev = head_;
+        node->next = head_->next;
 
         // Adjust the head node.
-        head_->next->prev = item;
-        head_->next       = item;
+        head_->next->prev = node;
+        head_->next       = node;
         size_++;
         assert(size_ <= capacity_);
     }
 
-    void push_back(item_type * item) {
+    void push_back(node_type * node) {
         assert(tail_ != nullptr);
-        assert(item != tail_);
+        assert(node != tail_);
         // Inserted into the front of the tail node.
-        item->prev = tail_->prev;
-        item->next = tail_;
+        node->prev = tail_->prev;
+        node->next = tail_;
 
         // Adjust the tail node.
-        tail_->prev->next = item;
-        tail_->prev       = item;
+        tail_->prev->next = node;
+        tail_->prev       = node;
         size_++;
         assert(size_ <= capacity_);
     }
 
-    item_type * pop_front() {
-        item_type * item = head_->next;
-        assert(item != nullptr);
-        if (item != tail_) {
-            remove_fast(item);
-            return item;
+    node_type * pop_front() {
+        node_type * node = head_->next;
+        assert(node != nullptr);
+        if (node != tail_) {
+            remove_fast(node);
+            return node;
         }
         else {
             return nullptr;
         }
     }
 
-    item_type * pop_back() {
-        item_type * item = tail_->prev;
-        assert(item != nullptr);
-        if (item != head_) {
-            remove_fast(item);
-            return item;
+    node_type * pop_back() {
+        node_type * node = tail_->prev;
+        assert(node != nullptr);
+        if (node != head_) {
+            remove_fast(node);
+            return node;
         }
         else {
             return nullptr;
         }
     }
 
-    void bring_to_front(item_type * item) {
+    void bring_to_front(node_type * node) {
         // remove_fast(item);
-        assert(item != nullptr);
-        item_type * prev = item->prev;
-        item_type * next = item->next;
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
         assert(prev != nullptr);
         prev->next = next;
         assert(next != nullptr);
@@ -242,64 +243,64 @@ public:
         
         // push_front(item);
         assert(head_ != nullptr);
-        assert(item != head_);
-        item->prev = head_;
-        item->next = head_->next;
+        assert(node != head_);
+        node->prev = head_;
+        node->next = head_->next;
 
         // Adjust the head node.
-        head_->next->prev = item;
-        head_->next       = item;
+        head_->next->prev = node;
+        head_->next       = node;
     }
 
-    void move_to_back(item_type * item) {
-        // remove_fast(item);
-        assert(item != nullptr);
-        item_type * prev = item->prev;
-        item_type * next = item->next;
+    void move_to_back(node_type * node) {
+        // remove_fast(node);
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
         assert(prev != nullptr);
         prev->next = next;
         assert(next != nullptr);
         next->prev = prev;
         
-        // push_back(item);
+        // push_back(node);
         assert(tail_ != nullptr);
-        assert(item != tail_);
-        item->prev = tail_->prev;
-        item->next = tail_;
+        assert(node != tail_);
+        node->prev = tail_->prev;
+        node->next = tail_;
 
         // Adjust the tail node.
-        tail_->prev->next = item;
-        tail_->prev       = item;
+        tail_->prev->next = node;
+        tail_->prev       = node;
     }
 
     void print() {
-        item_type * item = head_->next;
+        node_type * node = head_->next;
         int index = 0;
         printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);
-        while (item && item->next) {            
-            printf("[%3d]  key: %6d, value: %6d\n", index + 1, item->key, item->value);
+        while (node && node->next) {            
+            printf("[%3d]  key: %6d, value: %6d\n", index + 1, node->key, node->value);
             index++;
-            item = item->next;
+            node = node->next;
         }
-        printf("\n\n");
+        printf("\n");
     }
 
 protected:
     void init() {
-        item_type * new_item1 = new item_type;
-        item_type * new_item2 = new item_type;
-        if (new_item1 && new_item2) {
-            head_ = new_item1;
-            tail_ = new_item2;
+        node_type * new_node1 = new node_type;
+        node_type * new_node2 = new node_type;
+        if (new_node1 && new_node2) {
+            head_ = new_node1;
+            tail_ = new_node2;
             head_->prev = nullptr;
             head_->next = tail_;
             tail_->prev = head_;
             tail_->next = nullptr;
         }
 
-        item_type * new_list = nullptr;
+        node_type * new_list = nullptr;
         if (capacity_ > 0) {
-            new_list = new item_type[capacity_];
+            new_list = new node_type[capacity_];
             // In fact, we needn't initialize the list items.
         }
         list_ = new_list;

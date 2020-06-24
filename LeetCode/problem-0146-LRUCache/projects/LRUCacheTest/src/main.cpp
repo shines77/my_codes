@@ -34,6 +34,7 @@ void LeetCode_LRUCache_test()
     lruCache.put(2, 12);   // evicts key 3
 
     lruCache.print();
+    printf("\n");
 }
 
 void LeetCode_Online_LRUCache_test()

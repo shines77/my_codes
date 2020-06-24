@@ -26,7 +26,7 @@
     <ClInclude Include="src\LRUCacheOnline.h" />
     <ClInclude Include="src\LinkedList.h" />
     <ClInclude Include="src\LRUCache.h" />
-    <ClInclude Include="src\LRUItem.h" />
+    <ClInclude Include="src\LRUNode.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AFFFEFBB-C2EE-4344-BDF0-15F6A8B23F61}</ProjectGuid>

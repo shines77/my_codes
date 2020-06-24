@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 #include "LRUNode.h"
-#include "HashTable.h"
+#include "LRUHashTable.h"
 #include "LinkedList.h"
 
 //
@@ -53,9 +53,9 @@ public:
     size_type capacity() const { return list_.capacity(); }
 
     value_type get(const key_type & key) {
-        hash_node_type * node = cache_.find(key);
-        if (node != nullptr) {
-            node_type * node = node->value;
+        hash_node_type * hash_node = cache_.find(key);
+        if (hash_node != nullptr) {
+            node_type * node = hash_node->value;
             assert(node != nullptr);
             assert(key == node->key);
             touch(node);
@@ -65,9 +65,9 @@ public:
     }
 
     void put(const key_type & key, const value_type & value) {
-        hash_node_type * node = cache_.find(key);
-        if (node != nullptr) {
-            node_type * node = node->value;
+        hash_node_type * hash_node = cache_.find(key);
+        if (hash_node != nullptr) {
+            node_type * node = hash_node->value;
             assert(node != nullptr);
             assert(key == node->key);
             //node->key = key;
@@ -98,7 +98,7 @@ protected:
 
     void touch(node_type * node) {
         assert(node != nullptr);
-        list_.move_to_front(node);
+        list_.bring_to_front(node);
     }
 
     void touch(const key_type & key, const value_type & value) {

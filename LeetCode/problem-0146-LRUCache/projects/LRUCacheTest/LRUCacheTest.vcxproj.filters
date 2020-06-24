@@ -22,13 +22,13 @@
     <ClInclude Include="src\LinkedList.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\LRUItem.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\LRUCacheOnline.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\LRUHashTable.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LRUNode.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
