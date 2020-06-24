@@ -180,7 +180,7 @@ public:
         head_(nullptr), tail_(nullptr), list_(nullptr) {
         init();
     }
-    ~ContinuousDoubleLinkedList() { /* free(); */ }
+    ~ContinuousDoubleLinkedList() { /* destroy(); */ }
     size_t sizes() const { return size_; }
     size_t capacity() const { return capacity_; }
     node_type * insert_fast(key_type key, value_type value) {
@@ -233,7 +233,7 @@ protected:
             new_list = new node_type[capacity_];
         list_ = new_list;
     }
-    void free() {
+    void destroy() {
         if (head_) {
             delete head_;
             head_ = nullptr;
@@ -269,6 +269,28 @@ public:
     ~LRUCacheBase() { }
     size_t sizes() const { return list_.sizes(); }
     size_t capacity() const { return list_.capacity(); }
+protected:
+    void insert(key_type key, value_type value) {
+        node_type * new_node = list_.insert_fast(key, value);
+        if (new_node)
+            cache_.insert(key, new_node);
+    }
+    void touch(node_type * node) {
+        list_.move_to_front(node);
+    }
+    void touch(key_type key, value_type value) {
+        node_type * last = list_.pop_back();
+        if (last != nullptr) {
+            if (key != last->key) {
+                cache_.remove_fast(last->key);
+                cache_.insert(key, last);
+            }
+            last->key = key;
+            last->value = value;
+            list_.push_front(last);
+        }
+    }
+public:
     value_type get(key_type key) {
         hash_node_type * hash_node = cache_.find(key);
         if (hash_node != nullptr) {
@@ -291,27 +313,6 @@ public:
                 touch(key, value);
             else
                 insert(key, value);
-        }
-    }
-protected:
-    void insert(key_type key, value_type value) {
-        node_type * new_node = list_.insert_fast(key, value);
-        if (new_node)
-            cache_.insert(key, new_node);
-    }
-    void touch(node_type * node) {
-        list_.move_to_front(node);
-    }
-    void touch(key_type key, value_type value) {
-        node_type * last = list_.pop_back();
-        if (last != nullptr) {
-            if (key != last->key) {
-                cache_.remove_fast(last->key);
-                cache_.insert(key, last);
-            }
-            last->key = key;
-            last->value = value;
-            list_.push_front(last);
         }
     }
 };

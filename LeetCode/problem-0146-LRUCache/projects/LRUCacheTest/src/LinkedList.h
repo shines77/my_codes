@@ -59,6 +59,74 @@ public:
 
     bool is_empty() const { return (sizes() == 0); }
 
+protected:
+    void init() {
+        node_type * new_node1 = new node_type;
+        node_type * new_node2 = new node_type;
+        if (new_node1 && new_node2) {
+            head_ = new_node1;
+            tail_ = new_node2;
+            head_->prev = nullptr;
+            head_->next = tail_;
+            tail_->prev = head_;
+            tail_->next = nullptr;
+        }
+
+        node_type * new_list = nullptr;
+        if (capacity_ > 0) {
+            new_list = new node_type[capacity_];
+            // In fact, we needn't initialize the list items.
+        }
+        list_ = new_list;
+    }
+
+    node_type * insert_internal(key_type key, value_type value) {
+        assert(size_ < capacity_);
+        node_type * new_item = &list_[size_];
+        assert(new_item != nullptr);
+        new_item->key   = key;
+        new_item->value = value;
+        push_front(new_item);
+        return new_item;
+    }
+
+    void remove_fast_internal(node_type * node) {
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
+        assert(prev != nullptr);
+        prev->next = next;
+        assert(next != nullptr);
+        next->prev = prev;
+    }
+
+    void push_front_internal(node_type * node) {
+        assert(head_ != nullptr);
+        assert(node != head_);
+
+        // Inserted into the behind of the head node.
+        node->prev = head_;
+        node->next = head_->next;
+
+        // Adjust the head node.
+        head_->next->prev = node;
+        head_->next       = node;
+    }
+
+    void push_back_internal(node_type * node) {
+        assert(tail_ != nullptr);
+        assert(node != tail_);
+
+        // Inserted into the front of the tail node.
+        node->prev = tail_->prev;
+        node->next = tail_;
+
+        // Adjust the tail node.
+        tail_->prev->next = node;
+        tail_->prev       = node;
+    }
+
+public:
     void destroy() {
         if (head_) {
             delete head_;
@@ -244,73 +312,6 @@ public:
             node = node->next;
         }
         printf("\n");
-    }
-
-protected:
-    void init() {
-        node_type * new_node1 = new node_type;
-        node_type * new_node2 = new node_type;
-        if (new_node1 && new_node2) {
-            head_ = new_node1;
-            tail_ = new_node2;
-            head_->prev = nullptr;
-            head_->next = tail_;
-            tail_->prev = head_;
-            tail_->next = nullptr;
-        }
-
-        node_type * new_list = nullptr;
-        if (capacity_ > 0) {
-            new_list = new node_type[capacity_];
-            // In fact, we needn't initialize the list items.
-        }
-        list_ = new_list;
-    }
-
-    node_type * insert_internal(key_type key, value_type value) {
-        assert(size_ < capacity_);
-        node_type * new_item = &list_[size_];
-        assert(new_item != nullptr);
-        new_item->key   = key;
-        new_item->value = value;
-        push_front(new_item);
-        return new_item;
-    }
-
-    void remove_fast_internal(node_type * node) {
-        assert(node != nullptr);
-        node_type * prev = node->prev;
-        node_type * next = node->next;
-        assert(prev != nullptr);
-        prev->next = next;
-        assert(next != nullptr);
-        next->prev = prev;
-    }
-
-    void push_front_internal(node_type * node) {
-        assert(head_ != nullptr);
-        assert(node != head_);
-
-        // Inserted into the behind of the head node.
-        node->prev = head_;
-        node->next = head_->next;
-
-        // Adjust the head node.
-        head_->next->prev = node;
-        head_->next       = node;
-    }
-
-    void push_back_internal(node_type * node) {
-        assert(tail_ != nullptr);
-        assert(node != tail_);
-
-        // Inserted into the front of the tail node.
-        node->prev = tail_->prev;
-        node->next = tail_;
-
-        // Adjust the tail node.
-        tail_->prev->next = node;
-        tail_->prev       = node;
     }
 };
 

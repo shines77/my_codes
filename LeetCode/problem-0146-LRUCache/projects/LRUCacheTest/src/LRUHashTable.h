@@ -115,6 +115,26 @@ protected:
         return newCapacity;
     }
 
+    inline void remove_node_internal(HashNode * node) {
+        assert(node != nullptr);
+        assert((node >= table1_ && node < &table1_[capacity_]) ||
+            (node >= table2_ && node < &table2_[capacity_]));
+        node->key = LRUKey::EmptyKey;
+        assert(size_ > 0);
+        size_--;
+    }
+
+    bool remove_node(HashNode * node) {
+        if (node != nullptr) {
+            if ((node >= table1_ && node < &table1_[capacity_]) ||
+                (node >= table2_ && node < &table2_[capacity_])) {
+                remove_node_internal(node);
+                return true;
+            }
+        }
+        return false;
+    }
+
 public:
     HashNode * find(const key_type & key) {
         // The first layer table.
@@ -228,37 +248,17 @@ public:
         } while (1);
     }
 
-    inline void remove_fast(HashNode * node) {
-        assert(node != nullptr);
-        assert((node >= table1_ && node < &table1_[capacity_]) ||
-               (node >= table2_ && node < &table2_[capacity_]));
-        node->key = LRUKey::EmptyKey;
-        assert(size_ > 0);
-        size_--;
-    }
-
     void remove_fast(const key_type & key) {
         HashNode * node = find(key);
         if (node != nullptr) {
-            remove_fast(node);
+            remove_node_internal(node);
         }
-    }
-
-    bool remove(HashNode * node) {
-        if (node != nullptr) {
-            if ((node >= table1_ && node < &table1_[capacity_]) ||
-                (node >= table2_ && node < &table2_[capacity_])) {
-                remove_fast(node);
-                return true;
-            }
-        }
-        return false;
     }
 
     bool remove(const key_type & key) {
         HashNode * node = find(key);
         if (node != nullptr) {
-            remove_fast(node);
+            remove_node_internal(node);
             return true;
         }
         return false;

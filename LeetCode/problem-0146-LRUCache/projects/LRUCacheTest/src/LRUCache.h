@@ -52,6 +52,38 @@ public:
     size_type sizes() const { return list_.sizes(); }
     size_type capacity() const { return list_.capacity(); }
 
+protected:
+    void insert(const key_type & key, const value_type & value) {
+        node_type * new_node = list_.insert_fast(key, value);
+        if (new_node) {
+            cache_.insert(key, new_node);
+        }
+    }
+
+    void touch(node_type * node) {
+        assert(node != nullptr);
+        list_.bring_to_front(node);
+    }
+
+    void touch(const key_type & key, const value_type & value) {
+        // Pop the last node.
+        node_type * last = list_.pop_back();
+        if (last != nullptr) {
+            if (key != last->key) {
+                // Remove the old key from the hash table.
+                cache_.remove_fast(last->key);
+                // Insert the new key and value to the hash table.
+                cache_.insert(key, last);
+            }
+            // Save the new key and value.
+            last->key = key;
+            last->value = value;
+            // Push the last node to head again.
+            list_.push_front(last);
+        }
+    }
+
+public:
     value_type get(const key_type & key) {
         hash_node_type * hash_node = cache_.find(key);
         if (hash_node != nullptr) {
@@ -86,37 +118,6 @@ public:
 
     void print() {
         list_.print();
-    }
-
-protected:
-    void insert(const key_type & key, const value_type & value) {
-        node_type * new_node = list_.insert_fast(key, value);
-        if (new_node) {
-            cache_.insert(key, new_node);
-        }
-    }
-
-    void touch(node_type * node) {
-        assert(node != nullptr);
-        list_.bring_to_front(node);
-    }
-
-    void touch(const key_type & key, const value_type & value) {
-        // Pop the last node.
-        node_type * last = list_.pop_back();
-        if (last != nullptr) {
-            if (key != last->key) {
-                // Remove the old key from the hash table.
-                cache_.remove_fast(last->key);
-                // Insert the new key and value to the hash table.
-                cache_.insert(key, last);
-            }
-            // Save the new key and value.
-            last->key = key;
-            last->value = value;
-            // Push the last node to head again.
-            list_.push_front(last);
-        }
     }
 };
 
