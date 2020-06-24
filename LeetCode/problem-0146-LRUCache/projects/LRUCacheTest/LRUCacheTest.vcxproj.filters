@@ -19,9 +19,6 @@
     <ClInclude Include="src\LRUCache.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\HashTable.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\LinkedList.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -29,6 +26,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\LRUCacheOnline.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LRUHashTable.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

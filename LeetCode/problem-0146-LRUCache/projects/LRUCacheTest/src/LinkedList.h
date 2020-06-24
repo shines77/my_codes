@@ -6,21 +6,23 @@
 #pragma once
 #endif
 
+#include "LRUItem.h"
+
 #include <stdint.h>
 #include <memory.h>
-
-#include "LRUItem.h"
 
 #include <assert.h>
 
 namespace LeetCode {
 
-// ContinuousDoubleLinkedList
+//
+// class ContinuousDoubleLinkedList<T>
+//
 
-template <typename ItemT>
+template <typename ItemTy>
 class ContinuousDoubleLinkedList {
 public:
-    typedef ItemT item_type;
+    typedef ItemTy item_type;
     typedef typename item_type::key_type key_type;
     typedef typename item_type::value_type value_type;
 
@@ -48,7 +50,7 @@ public:
     }
 
     ~ContinuousDoubleLinkedList() {
-        free();
+        destroy();
     }
 
     size_t sizes() const { return size_; }
@@ -56,16 +58,21 @@ public:
 
     bool is_empty() const { return (sizes() == 0); }
 
-    void print() {
-        item_type * item = head_->next;
-        int index = 0;
-        printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);
-        while (item && item->next) {            
-            printf("[%3d]  key: %6d, value: %6d\n", index + 1, item->key, item->value);
-            index++;
-            item = item->next;
+    void destroy() {
+        if (head_) {
+            delete head_;
+            head_ = nullptr;
         }
-        printf("\n\n");
+        if (tail_) {
+            delete tail_;
+            tail_ = nullptr;
+        }
+        if (list_) {
+            delete [] list_;
+            list_ = nullptr;
+        }
+        size_ = 0;
+        capacity_ = 0;
     }
 
     void clear() {
@@ -223,7 +230,7 @@ public:
         }
     }
 
-    void move_to_front(item_type * item) {
+    void bring_to_front(item_type * item) {
         // remove_fast(item);
         assert(item != nullptr);
         item_type * prev = item->prev;
@@ -265,6 +272,18 @@ public:
         tail_->prev       = item;
     }
 
+    void print() {
+        item_type * item = head_->next;
+        int index = 0;
+        printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);
+        while (item && item->next) {            
+            printf("[%3d]  key: %6d, value: %6d\n", index + 1, item->key, item->value);
+            index++;
+            item = item->next;
+        }
+        printf("\n\n");
+    }
+
 protected:
     void init() {
         item_type * new_item1 = new item_type;
@@ -284,23 +303,6 @@ protected:
             // In fact, we needn't initialize the list items.
         }
         list_ = new_list;
-    }
-
-    void free() {
-        if (head_) {
-            delete head_;
-            head_ = nullptr;
-        }
-        if (tail_) {
-            delete tail_;
-            tail_ = nullptr;
-        }
-        if (list_) {
-            delete [] list_;
-            list_ = nullptr;
-        }
-        size_ = 0;
-        capacity_ = 0;
     }
 };
 
