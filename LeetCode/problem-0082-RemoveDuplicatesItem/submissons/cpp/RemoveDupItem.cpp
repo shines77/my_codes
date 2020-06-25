@@ -19,30 +19,30 @@ public:
         ListNode dummy(0);
         dummy.next = head;
 
-        ListNode * last, * comp;
+        ListNode * last, * compare;
         ListNode * iter;
 
         last = &dummy;
-        comp = head;
+        compare = head;
         iter = head;
 
         while (iter) {
             ListNode * first = iter;
             iter = iter->next;
-            while (iter && comp->val == iter->val) {
+            while (iter && iter->val == compare->val) {
                 ListNode * temp = iter;
                 iter = iter->next;
                 delete temp;
             }
-            if (iter == comp->next) {
-                last = comp;
-                comp = iter;
+            if (iter == compare->next) {
+                last = compare;
+                compare = iter;
                 continue;
             }
             else {
                 delete first;
             }
-            comp       = iter;
+            compare    = iter;
             last->next = iter;
         }
         return dummy.next;
