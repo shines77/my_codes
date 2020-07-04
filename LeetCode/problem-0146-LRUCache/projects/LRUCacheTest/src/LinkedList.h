@@ -75,7 +75,7 @@ protected:
         node_type * new_list = nullptr;
         if (capacity_ > 0) {
             new_list = new node_type[capacity_];
-            // In fact, we needn't initialize the list items.
+            // In fact, we needn't initialize the list nodes.
         }
         list_ = new_list;
     }

@@ -22,6 +22,7 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\LRUCache_v1.h" />
     <ClInclude Include="src\LRUHashTable.h" />
     <ClInclude Include="src\LRUCacheOnline.h" />
     <ClInclude Include="src\LinkedList.h" />
