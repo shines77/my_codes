@@ -44,7 +44,6 @@ public:
         init();
     }
     ~LRUHashTable() {
-#if 0
         if (table1_) {
             delete[] table1_;
             table1_ = nullptr;
@@ -53,7 +52,6 @@ public:
             delete[] table2_;
             table2_ = nullptr;
         }
-#endif
         size_ = 0;
         capacity_ = 0;
     }
@@ -180,7 +178,7 @@ public:
         head_(nullptr), tail_(nullptr), list_(nullptr) {
         init();
     }
-    ~ContinuousDoubleLinkedList() { /* destroy(); */ }
+    ~ContinuousDoubleLinkedList() { destroy(); }
     size_t sizes() const { return size_; }
     size_t capacity() const { return capacity_; }
     node_type * insert_fast(key_type key, value_type value) {

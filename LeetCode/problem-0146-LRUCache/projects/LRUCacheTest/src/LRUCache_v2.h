@@ -28,7 +28,7 @@ struct DoubleLinkedList {
 	int value;
 
 	DoubleLinkedList(int key, int value)
-        : key(key), value(value), prev(NULL), next(NULL) {
+        : key(key), value(value), prev(nullptr), next(nullptr) {
     }
 };
 
@@ -53,6 +53,22 @@ public:
 		tail_->prev = head_;
 	}
 
+    ~LRUCache() {
+        destroyLinkedList();
+    }
+
+    void destroyLinkedList() {
+        DoubleLinkedList * node = head_;
+        while (node != nullptr) {
+            DoubleLinkedList * next = node->next;
+            delete node;
+            if (next != nullptr)
+                node = next;
+            else
+                break;
+        }
+    }
+
 	// 表尾插入结点
 	void pushNode(DoubleLinkedList * node) {
 		node->prev = tail_->prev;
@@ -64,8 +80,10 @@ public:
 	// 从链表中移除节点
 	void removeNode(DoubleLinkedList * node) {
 		// 将该节点从链表中移除
-		node->prev->next = node->next;
-		node->next->prev = node->prev;
+        if (node->prev)
+		    node->prev->next = node->next;
+        if (node->next)
+		    node->next->prev = node->prev;
 	}
 
 	int get(int key) {
@@ -98,12 +116,12 @@ public:
 		    // 如果内存已经放满
 		    if (cache_.size() >= capacity_) {
 			    // 获取链表头结点的key
-			    int topKey = head_->next->key;
-			    // 移除链表中的首个节点，并从memory中移除该key
-			    removeNode(head_->next);
                 DoubleLinkedList * topNode = head_->next;
-                //if (topNode != nullptr)
-                //    delete topNode;
+			    int topKey = topNode->key;
+			    // 移除链表中的首个节点，并从cache中移除该key
+			    removeNode(topNode);
+                if (topNode != nullptr && topNode != tail_)
+                    delete topNode;
 			    cache_.erase(topKey);
 		    }
 

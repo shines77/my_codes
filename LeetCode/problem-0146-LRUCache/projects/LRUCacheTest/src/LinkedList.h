@@ -61,23 +61,22 @@ public:
 
 protected:
     void init() {
-        node_type * new_node1 = new node_type;
-        node_type * new_node2 = new node_type;
-        if (new_node1 && new_node2) {
-            head_ = new_node1;
-            tail_ = new_node2;
-            head_->prev = nullptr;
-            head_->next = tail_;
-            tail_->prev = head_;
-            tail_->next = nullptr;
-        }
+        node_type * new_head = new node_type;
+        assert(new_head != nullptr);
+        head_ = new_head;
+        node_type * new_tail = new node_type;
+        assert(new_tail != nullptr);
+        tail_ = new_tail;
 
-        node_type * new_list = nullptr;
-        if (capacity_ > 0) {
-            new_list = new node_type[capacity_];
-            // In fact, we needn't initialize the list nodes.
-        }
-        list_ = new_list;
+        head_->prev = nullptr;
+        head_->next = tail_;
+        tail_->prev = head_;
+        tail_->next = nullptr;
+
+        // In fact, we needn't initialize the list nodes.
+        node_type * new_list = new node_type[capacity_];
+        assert(new_list != nullptr);
+        list_ = new_list;        
     }
 
     node_type * insert_internal(key_type key, value_type value) {
@@ -90,7 +89,7 @@ protected:
         return new_item;
     }
 
-    void remove_fast_internal(node_type * node) {
+    void remove_internal(node_type * node) {
         assert(node != nullptr);
         node_type * prev = node->prev;
         node_type * next = node->next;
@@ -160,30 +159,30 @@ public:
                 assert(size_ <= capacity_);
                 if (list_) {
                     // Copy first [size_] items.
-                    ::memcpy((void *)new_list, (const void *)list_, sizeof(node_type) * size_);
+                    ::memcpy((void *)new_list, (const void *)list_, size_ * sizeof(node_type));
                     delete [] list_;
                 }
                 list_ = new_list;
+                capacity_ = new_capacity;
             }
-        }
-        if (new_capacity >= size_) {
-            capacity_ = new_capacity;
         }
         else {
-            intptr_t remove_nodes = (size_ - new_capacity);
-            // Remove last [remove_nodes] nodes, adjust the tail node.
-            assert(tail_ != nullptr);
-            node_type * node = tail_->prev;
-            while (node != nullptr && node->prev != nullptr) {
-                node = node->prev;
-                remove_nodes--;
-                if (remove_nodes <= 0) {
-                    tail_->prev = node;
-                    break;
+            // Shrink the size if necessary.
+            if (new_capacity < size_) {
+                size_type remove_nodes = (size_ - new_capacity);
+                // Remove (size_ - new_capacity) nodes at tail, and adjust the value of tail->prev.
+                assert(tail_ != nullptr);
+                node_type * node = tail_->prev;
+                while (node != nullptr && node->prev != nullptr) {
+                    node = node->prev;
+                    remove_nodes--;
+                    if (remove_nodes == 0) {
+                        tail_->prev = node;
+                        break;
+                    }
                 }
+                size_ = new_capacity;
             }
-            size_ = new_capacity;
-            capacity_ = new_capacity;
         }
     }
 
@@ -215,25 +214,25 @@ public:
         return nullptr;
     }
 
-    void remove_fast(node_type * node) {
-        remove_fast_internal(node);
+    void remove(node_type * node) {
+        remove_internal(node);
 
         assert(size_ >= 1);
         size_--;
     }
 
-    bool remove(node_type * node) {
+    void remove_safe(node_type * node) {
         assert(node != nullptr);
         node_type * prev = node->prev;
-        node_type * next = node->next;
-        if (prev != nullptr && next != nullptr) {
+        if (prev != nullptr) {
             prev->next = next;
-            next->prev = prev;
-            assert(size_ >= 1);
-            size_--;
-            return true;
         }
-        return false;
+        node_type * next = node->next;
+        if (next != nullptr) {
+            next->prev = prev;
+        }
+        assert(size_ >= 1);
+        size_--;
     }
 
     void push_front(node_type * node) {
@@ -272,7 +271,7 @@ public:
         node_type * node = head_->next;
         assert(node != nullptr);
         if (node != tail_) {
-            remove_fast(node);
+            remove(node);
             return node;
         }
         else {
@@ -284,7 +283,7 @@ public:
         node_type * node = tail_->prev;
         assert(node != nullptr);
         if (node != head_) {
-            remove_fast(node);
+            remove(node);
             return node;
         }
         else {
@@ -293,12 +292,12 @@ public:
     }
 
     void bring_to_front(node_type * node) {
-        remove_fast_internal(node);
+        remove_internal(node);
         push_front_internal(node);
     }
 
     void move_to_back(node_type * node) {
-        remove_fast_internal(node);
+        remove_internal(node);
         push_back_internal(node);
     }
 
