@@ -22,38 +22,38 @@ namespace V1 {
 
 class LRUCache {
 public:
-    LRUCache(int capacity) : _capacity(capacity) {
+    LRUCache(int capacity) : capacity_(capacity) {
     }
     
     int get(int key) {
-        auto it = _table.find(key);
-        if (it != _table.end()) {
-            _lru.splice(_lru.begin(), _lru, it->second);
+        auto it = cache_.find(key);
+        if (it != cache_.end()) {
+            lru_list_.splice(lru_list_.begin(), lru_list_, it->second);
             return it->second->second;
         }
         return -1;
     }
     
     void put(int key, int value) {
-        auto it = _table.find(key);
-        if (it != _table.end()) {
-            _lru.splice(_lru.begin(), _lru, it->second);
+        auto it = cache_.find(key);
+        if (it != cache_.end()) {
+            lru_list_.splice(lru_list_.begin(), lru_list_, it->second);
             it->second->second = value;
-            return;
         }
+        else {
+            lru_list_.emplace_front(key, value);
+            cache_[key] = lru_list_.begin();
         
-        _lru.emplace_front(key, value);
-        _table[key] = _lru.begin();
-        
-        if (_table.size() > size_t(_capacity)) {
-            _table.erase(_lru.back().first);
-            _lru.pop_back();
+            if (cache_.size() > size_t(capacity_)) {
+                cache_.erase(lru_list_.back().first);
+                lru_list_.pop_back();
+            }
         }
     }
 private:
-    std::unordered_map<int, std::list<std::pair<int, int>>::iterator> _table;
-    std::list<std::pair<int, int>> _lru;
-    int _capacity;
+    std::unordered_map<int, std::list<std::pair<int, int>>::iterator> cache_;
+    std::list<std::pair<int, int>> lru_list_;
+    int capacity_;
 };
 
 } // namespace V1

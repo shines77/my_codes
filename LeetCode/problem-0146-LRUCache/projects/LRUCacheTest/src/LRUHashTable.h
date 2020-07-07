@@ -52,7 +52,7 @@ public:
     LRUHashTable(size_t capacity) : size_(0), capacity_(capacity), mask_(hash_type(-1)),
         table1_(nullptr), table2_(nullptr) {
         size_ = 0;
-        capacity_ = calcCapacity(capacity);
+        capacity_ = calc_capacity(capacity);
         mask_ = (hash_type)(capacity_ - 1);
         init();
     }
@@ -99,7 +99,7 @@ protected:
         }
     }
 
-    size_t calcCapacity(size_t capacity) {
+    size_t calc_capacity(size_t capacity) {
         size_t newCapacity;
         // The kDefaultCapacity is 32.
         if (capacity > kDefaultCapacity) {

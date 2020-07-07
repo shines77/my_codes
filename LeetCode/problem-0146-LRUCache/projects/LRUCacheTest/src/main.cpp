@@ -11,6 +11,7 @@
 
 #include "LRUCache.h"
 #include "LRUCache_v1.h"
+#include "LRUCache_v2.h"
 #ifndef __builtin_expect
 #define __builtin_expect(expr, f)   (expr)
 #endif
@@ -274,6 +275,46 @@ void LRUCache_V1_PrefTest()
     printf("\n");
 }
 
+void LRUCache_V2_PrefTest()
+{
+    printf("LRUCache_V2_PrefTest() begin ...\n");
+    high_resolution_clock::time_point startTime = high_resolution_clock::now();
+
+    int sum32 = 0;
+    for (int i = 0; i < MAX_TEST_DATA; i++) {
+        std::vector<int> & lruData = s_testData[i];
+        assert(lruData.size() > 0);
+        int lruCapacity = lruData[0];
+        assert(lruCapacity > 0);
+        LeetCode::V2::LRUCache lruCache(lruCapacity);
+        assert(lruData.size() > 1);
+        int lruActionSize = lruData[1];
+        int index = 2;
+        for (int j = 0; j < lruActionSize; j++) {
+            int key = lruData[index++];
+            if (key > 0) {
+                // Put
+                int value = lruData[index++];
+                lruCache.put(key, value);
+            }
+            else if (key < 0) {
+                // Get
+                sum32 += lruCache.get(key);
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    high_resolution_clock::time_point endTime = high_resolution_clock::now();
+    duration<double, std::ratio<1, 1000>> elapsedTime = endTime - startTime;
+    printf("LRUCache_V2_PrefTest() end   ...\n");
+    printf("\n");
+    printf("Elapsed time: %0.3f ms, sum32 = %d\n", elapsedTime.count(), sum32);
+    printf("\n");
+}
+
 void LeetCode_LRUCache_PrefTest()
 {
     cpu_warmup(1000);
@@ -281,6 +322,7 @@ void LeetCode_LRUCache_PrefTest()
 
     LRUCache_PrefTest();
     LRUCache_V1_PrefTest();
+    LRUCache_V2_PrefTest();
 }
 
 int main(int argc, char * argv[])

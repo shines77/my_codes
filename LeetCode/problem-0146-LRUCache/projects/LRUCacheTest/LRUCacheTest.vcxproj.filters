@@ -34,5 +34,8 @@
     <ClInclude Include="src\LRUCache_v1.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\LRUCache_v2.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
