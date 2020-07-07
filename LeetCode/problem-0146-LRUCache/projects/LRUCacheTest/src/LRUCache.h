@@ -21,7 +21,7 @@
 
 namespace LeetCode {
 
-#if 0
+#if 1
 
 template <typename KeyT, typename ValueT, ValueT kFailedValue = LRUValue::FailedValue>
 class LRUCacheBase {
@@ -58,21 +58,22 @@ public:
 
 protected:
     void insert(const key_type & key, const value_type & value) {
-        node_type * new_node = list_.insert_fast(key, value);
+        node_type * new_node = list_.push_front_fast(key, value);
         if (new_node) {
             cache_.insert(key, new_node);
         }
     }
 
-    void touch(node_type * node) {
+    void touch_node(node_type * node) {
         assert(node != nullptr);
         list_.bring_to_front(node);
     }
 
     void touch(const key_type & key, const value_type & value) {
         // Pop the last node.
-        node_type * last = list_.pop_back();
+        node_type * last = list_.back();
         if (last != nullptr) {
+            list_.pop_back();
             if (key != last->key) {
                 // Remove the old key from the hash table.
                 cache_.remove(last->key);
@@ -94,7 +95,7 @@ public:
             node_type * node = hash_node->value;
             assert(node != nullptr);
             assert(key == node->key);
-            touch(node);
+            touch_node(node);
             return node->value;
         }
         return kFailedValue;
@@ -107,7 +108,7 @@ public:
             assert(node != nullptr);
             assert(key == node->key);
             node->value = value;
-            touch(node);
+            touch_node(node);
         }
         else {
             if (list_.sizes() >= capacity_) {
@@ -160,21 +161,22 @@ public:
 
 protected:
     void insert(const key_type & key, const value_type & value) {
-        node_type * new_node = list_.insert_fast(key, value);
+        node_type * new_node = list_.push_front_fast(key, value);
         if (new_node) {
             cache_.insert(std::make_pair(key, new_node));
         }
     }
 
-    void touch(node_type * node) {
+    void touch_node(node_type * node) {
         assert(node != nullptr);
         list_.bring_to_front(node);
     }
 
-    void touch(const key_type & key, const value_type & value) {
+    void touch_node(const key_type & key, const value_type & value) {
         // Pop the last node.
-        node_type * last = list_.pop_back();
+        node_type * last = list_.back();
         if (last != nullptr) {
+            list_.pop_back();
             if (key != last->key) {
                 // Remove the old key from the hash table.
                 cache_.erase(last->key);
@@ -196,7 +198,7 @@ public:
             node_type * node = iter->second;
             assert(node != nullptr);
             assert(key == node->key);
-            touch(node);
+            touch_node(node);
             return node->value;
         }
         return kFailedValue;
@@ -209,11 +211,11 @@ public:
             assert(node != nullptr);
             assert(key == node->key);
             node->value = value;
-            touch(node);
+            touch_node(node);
         }
         else {
             if (list_.sizes() >= capacity_) {
-                touch(key, value);
+                touch_node(key, value);
             }
             else {
                 insert(key, value);

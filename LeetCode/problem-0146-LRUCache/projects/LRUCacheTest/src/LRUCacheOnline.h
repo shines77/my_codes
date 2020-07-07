@@ -273,7 +273,7 @@ protected:
         if (new_node)
             cache_.insert(key, new_node);
     }
-    void touch(node_type * node) {
+    void touch_node(node_type * node) {
         list_.bring_to_front(node);
     }
     void touch(key_type key, value_type value) {
@@ -293,7 +293,7 @@ public:
         hash_node_type * hash_node = cache_.find(key);
         if (hash_node != nullptr) {
             node_type * node = hash_node->value;
-            touch(node);
+            touch_node(node);
             return node->value;
         }
         return LRUValue::FailedValue;
@@ -303,7 +303,7 @@ public:
         if (hash_node != nullptr) {
             node_type * node = hash_node->value;
             node->value = value;
-            touch(node);
+            touch_node(node);
         }
         else {
             if (list_.sizes() >= capacity_)

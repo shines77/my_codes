@@ -79,16 +79,6 @@ protected:
         list_ = new_list;        
     }
 
-    node_type * insert_internal(key_type key, value_type value) {
-        assert(size_ < capacity_);
-        node_type * new_item = &list_[size_];
-        assert(new_item != nullptr);
-        new_item->key   = key;
-        new_item->value = value;
-        push_front(new_item);
-        return new_item;
-    }
-
     void remove_internal(node_type * node) {
         assert(node != nullptr);
         node_type * prev = node->prev;
@@ -99,11 +89,28 @@ protected:
         next->prev = prev;
     }
 
+    node_type * make_node(key_type key, value_type value) {
+        assert(size_ < capacity_);
+        node_type * new_item = &list_[size_];
+        assert(new_item != nullptr);
+        new_item->key   = key;
+        new_item->value = value;
+        return new_item;
+    }
+
+    node_type * push_front_internal(key_type key, value_type value) {
+        assert(size_ < capacity_);
+        node_type * new_node = make_node(key, value);
+        assert(new_node != nullptr);
+        push_front_internal(new_node);
+        return new_node;
+    }
+
     void push_front_internal(node_type * node) {
         assert(head_ != nullptr);
         assert(node != head_);
 
-        // Inserted into the behind of the head node.
+        // Insert node into the behind of the head node.
         node->prev = head_;
         node->next = head_->next;
 
@@ -202,22 +209,10 @@ public:
         tail_->next = nullptr;
     }
 
-    node_type * insert_fast(key_type key, value_type value) {
-        return insert_internal(key, value);
-    }
-
-    node_type * insert(key_type key, value_type value) {
-        assert(size_ <= capacity_);
-        if (size_ < capacity_) {
-            return insert_internal(key, value);
-        }
-        return nullptr;
-    }
-
     void remove(node_type * node) {
         remove_internal(node);
 
-        assert(size_ >= 1);
+        assert(size_ > 0);
         size_--;
     }
 
@@ -231,22 +226,41 @@ public:
         if (next != nullptr) {
             next->prev = prev;
         }
-        assert(size_ >= 1);
+        assert(size_ > 0);
         size_--;
     }
 
-    void push_front(node_type * node) {
-        push_front_internal(node);
-
+    node_type * push_front_fast(key_type key, value_type value) {
+        node_type * new_node = push_front_internal(key, value);
+        assert(new_node != nullptr);
         size_++;
         assert(size_ <= capacity_);
+        return new_node;
+    }
+
+    node_type * push_front(key_type key, value_type value) {
+        if (size_ < capacity_)
+            return push_front_fast(key, value);
+        else
+            return nullptr;
+    }
+
+    void push_front(node_type * node) {
+        if (size_ < capacity_) {
+            push_front_internal(node);
+
+            size_++;
+            assert(size_ <= capacity_);
+        }
     }
 
     void push_back(node_type * node) {
-        push_back_internal(node);
+        if (size_ < capacity_) {
+            push_back_internal(node);
 
-        size_++;
-        assert(size_ <= capacity_);
+            size_++;
+            assert(size_ <= capacity_);
+        }
     }
 
     node_type * front() {
@@ -267,28 +281,18 @@ public:
             return nullptr;
     }
 
-    node_type * pop_front() {
+    void pop_front() {
         node_type * node = head_->next;
         assert(node != nullptr);
-        if (node != tail_) {
-            remove(node);
-            return node;
-        }
-        else {
-            return nullptr;
-        }
+        assert(node != tail_);
+        remove(node);
     }
 
-    node_type * pop_back() {
+    void pop_back() {
         node_type * node = tail_->prev;
         assert(node != nullptr);
-        if (node != head_) {
-            remove(node);
-            return node;
-        }
-        else {
-            return nullptr;
-        }
+        assert(node != head_);
+        remove(node);
     }
 
     void bring_to_front(node_type * node) {
