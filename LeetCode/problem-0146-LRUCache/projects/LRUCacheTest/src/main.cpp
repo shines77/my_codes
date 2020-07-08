@@ -173,11 +173,11 @@ void make_test_data()
         lruData.push_back(lruCapacity);
         int basePutSize = randomInt32(lruCapacity * 60 / 100, lruCapacity);
 
-        int multiple = randomInt32(1, 3);
+        int multiple = randomInt32(2, 3);
         int maxKey = randomInt32(1, lruCapacity * multiple);
         int maxValue = randomInt32(1, lruCapacity * (multiple + 1));
         
-        int lruActionSize = randomInt32(10, 100);
+        int lruActionSize = randomInt32(lruCapacity * 60 / 100, lruCapacity * 2);
         lruData.push_back(basePutSize + lruActionSize);
 
         for (int j = 0; j < basePutSize; j++) {
@@ -249,7 +249,15 @@ void LRUCache_PrefTest()
             }
         }
 #ifndef NDEBUG
-        printf("total = %-6d, lruCapacity = %d\n", order, lruCapacity);
+        printf("total = %-6d, lruCapacity = %d, lruActionSize = %d\n", order, lruCapacity, lruActionSize);
+        if (order == 2) {
+            printf("\n");
+            lruCache.display();
+            for (int i = 0; i < (int)lruData.size(); i++) {
+                printf("[%-3d]: %d\n", i, lruData[i]);
+            }
+            printf("\n");
+        }
 #endif
     }
 
