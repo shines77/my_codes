@@ -381,14 +381,157 @@ void LRUCache_V2_PrefTest()
     printf("\n");
 }
 
+void LRUCache_PrefTest2()
+{
+    printf("LRUCache_PrefTest2() begin ...\n");
+
+    double elapsedMillsecs = 0.0f;
+
+    int sumGet = 0, sumVisit = 0;
+    for (int i = 0; i < MAX_TEST_DATA; i++) {
+        std::vector<int> & lruData = s_testData[i];
+        assert(lruData.size() > 0);
+        int lruCapacity = lruData[0];
+        assert(lruCapacity > 0);
+        LeetCode::LRUCache lruCache(lruCapacity);
+        assert(lruData.size() > 1);
+        int lruActionSize = lruData[1];
+
+        high_resolution_clock::time_point startTime = high_resolution_clock::now();
+
+        int index = 2;
+        for (int j = 0; j < lruActionSize; j++) {
+            int key = lruData[index++];
+            if (key > 0) {
+                // Put
+                int value = lruData[index++];
+                lruCache.put(key, value);
+            }
+            else if (key < 0) {
+                // Get
+                sumGet += lruCache.get(-key);
+            }
+            else {
+                break;
+            }
+        }
+
+        int order;
+        auto node = lruCache.begin();
+        for (order = 0; order < lruCapacity; order++) {
+            if (node != lruCache.end()) {
+                sumVisit += node->key * 256 + node->value * (order + 1);
+                node = node->next;
+            }
+            else {
+                break;
+            }
+        }
+
+        high_resolution_clock::time_point endTime = high_resolution_clock::now();
+        duration<double, std::ratio<1, 1000>> elapsedTime = endTime - startTime;
+
+        elapsedMillsecs += elapsedTime.count();
+
+#ifndef NDEBUG
+        printf("total = %-6d, lruCapacity = %d, lruActionSize = %d\n", order, lruCapacity, lruActionSize);
+        if (order == 2) {
+            printf("\n");
+            lruCache.display();
+            for (int i = 0; i < (int)lruData.size(); i++) {
+                printf("[%-3d]: %d\n", i, lruData[i]);
+            }
+            printf("\n");
+        }
+#endif
+    }
+
+    printf("LRUCache_PrefTest2() end   ...\n");
+    printf("\n");
+    printf("Elapsed time: %0.3f ms, sumGet = %d, sumVisit = %d\n",
+           elapsedMillsecs, sumGet, sumVisit);
+    printf("\n");
+}
+
+void LRUCache_V1_PrefTest2()
+{
+    printf("LRUCache_V1_PrefTest2() begin ...\n");
+
+    double elapsedMillsecs = 0.0f;
+
+    int sumGet = 0, sumVisit = 0;
+    for (int i = 0; i < MAX_TEST_DATA; i++) {
+        std::vector<int> & lruData = s_testData[i];
+        assert(lruData.size() > 0);
+        int lruCapacity = lruData[0];
+        assert(lruCapacity > 0);
+        LeetCode::V1::LRUCache lruCache(lruCapacity);
+        assert(lruData.size() > 1);
+        int lruActionSize = lruData[1];
+
+        high_resolution_clock::time_point startTime = high_resolution_clock::now();
+
+        int index = 2;
+        for (int j = 0; j < lruActionSize; j++) {
+            int key = lruData[index++];
+            if (key > 0) {
+                // Put
+                int value = lruData[index++];
+                lruCache.put(key, value);
+            }
+            else if (key < 0) {
+                // Get
+                sumGet += lruCache.get(-key);
+            }
+            else {
+                break;
+            }
+        }
+
+        int order;
+        auto node = lruCache.cbegin();
+        for (order = 0; order < lruCapacity; order++) {
+            if (node != lruCache.cend()) {
+                sumVisit += node->first * 256 + node->second * (order + 1);
+                node++;
+            }
+            else break;
+        }
+
+        high_resolution_clock::time_point endTime = high_resolution_clock::now();
+        duration<double, std::ratio<1, 1000>> elapsedTime = endTime - startTime;
+
+        elapsedMillsecs += elapsedTime.count();
+
+#ifndef NDEBUG
+        printf("total = %-6d, lruCapacity = %d, lruActionSize = %d\n", order, lruCapacity, lruActionSize);
+#endif
+    }
+
+    printf("LRUCache_V1_PrefTest2() end   ...\n");
+    printf("\n");
+    printf("Elapsed time: %0.3f ms, sumGet = %d, sumVisit = %d\n",
+           elapsedMillsecs, sumGet, sumVisit);
+    printf("\n");
+}
+
 void LeetCode_LRUCache_PrefTest()
 {
     cpu_warmup(1000);
     make_test_data();
 
+    printf("---------------------------------------------------------------------\n\n");
+
     LRUCache_PrefTest();
     LRUCache_V1_PrefTest();
     LRUCache_V2_PrefTest();
+
+    printf("---------------------------------------------------------------------\n\n");
+
+    LRUCache_PrefTest2();
+    LRUCache_V1_PrefTest2();
+
+    printf("---------------------------------------------------------------------\n\n");
 }
 
 int main(int argc, char * argv[])
