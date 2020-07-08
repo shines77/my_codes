@@ -43,7 +43,6 @@ private:
 public:
     LRUHashTable() : size_(0), capacity_(0), mask_(hash_type(-1)),
         table1_(nullptr), table2_(nullptr) {
-        size_ = 0;
         capacity_ = kDefaultCapacity;
         mask_ = capacity_ - 1;
         init();
@@ -51,7 +50,6 @@ public:
 
     LRUHashTable(size_t capacity) : size_(0), capacity_(capacity), mask_(hash_type(-1)),
         table1_(nullptr), table2_(nullptr) {
-        size_ = 0;
         capacity_ = calc_capacity(capacity);
         mask_ = (hash_type)(capacity_ - 1);
         init();
@@ -107,8 +105,7 @@ protected:
             newCapacity = kDefaultCapacity;
             while (newCapacity < capacity)
                 newCapacity *= 2;
-            if ((newCapacity >= capacity) && (newCapacity - capacity) < (newCapacity / 4))
-                newCapacity *= 2;
+            newCapacity *= 2;
         }
         else {
             newCapacity = kDefaultCapacity;
@@ -120,8 +117,8 @@ protected:
         assert(node != nullptr);
         assert((node >= table1_ && node < &table1_[capacity_]) ||
                (node >= table2_ && node < &table2_[capacity_]));
-        assert(node->key != LRUKey::UnusedKey);
-        node->key = LRUKey::UnusedKey;
+        assert(node->key != LRUKey::EmptyKey);
+        node->key = LRUKey::EmptyKey;
         assert(size_ > 0);
         size_--;
     }
@@ -181,15 +178,18 @@ public:
                 break;
             }
             // Reroll to the beginning of the table2.
-            if (start == end) {
+            if (unlikely(start == end)) {
                 start = table2_;
+                if (unlikely(start == origin)) {
+                    break;
+                }
             }
         } while (1);
 
         return nullptr;
     }
 
-    void insert(const key_type & key, const  value_type & value) {
+    void insert(const key_type & key, const value_type & value) {
         // The first layer table.
         hash_type index1 = getHash1(key);
         assert(index1 < capacity_);
@@ -203,7 +203,8 @@ public:
         do {
             // If the key is LRUKey::UnusedKey or LRUKey::EmptyKey,
             // insert the new value to first layer.
-            if (unlikely(start->key == LRUKey::UnusedKey)) {
+            if (unlikely((start->key == LRUKey::UnusedKey)
+                      || (start->key == LRUKey::EmptyKey))) {
                 start->key = key;
                 start->value = value;
                 size_++;
@@ -228,7 +229,8 @@ public:
         do {
             // If the key is LRUKey::UnusedKey or LRUKey::EmptyKey,
             // insert the new value to second layer.
-            if (unlikely(start->key == LRUKey::UnusedKey)) {
+            if (unlikely((start->key == LRUKey::UnusedKey)
+                      || (start->key == LRUKey::EmptyKey))) {
                 start->key = key;
                 start->value = value;
                 size_++;
@@ -244,8 +246,11 @@ public:
                 break;
             }
             // Reroll to the beginning of the table2.
-            if (start == end) {
+            if (unlikely(start == end)) {
                 start = table2_;
+                if (unlikely(start == origin)) {
+                    break;
+                }
             }
         } while (1);
     }
