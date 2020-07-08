@@ -66,7 +66,7 @@ void LeetCode_LRUCache_UintTest()
     lruCache.get(4);       // returns 4
     lruCache.put(2, 12);   // evicts key 3
 
-    lruCache.print();
+    lruCache.display();
     printf("\n");
 }
 
@@ -171,12 +171,22 @@ void make_test_data()
 
         int lruCapacity = randomInt32(2, 100);
         lruData.push_back(lruCapacity);
+        int basePutSize = randomInt32(lruCapacity * 60 / 100, lruCapacity);
 
-        int multiple = randomInt32(2, 6);
+        int multiple = randomInt32(1, 3);
         int maxKey = randomInt32(1, lruCapacity * multiple);
         int maxValue = randomInt32(1, lruCapacity * (multiple + 1));
+        
         int lruActionSize = randomInt32(10, 100);
-        lruData.push_back(lruActionSize);
+        lruData.push_back(basePutSize + lruActionSize);
+
+        for (int j = 0; j < basePutSize; j++) {
+            // Put
+            int key = randomInt32(1, maxKey);
+            int value = randomInt32(1, maxValue);
+            lruData.push_back(key);
+            lruData.push_back(value);
+        }
 
         for (int j = 0; j < lruActionSize; j++) {
             int method = randomInt32(-80, 100);
@@ -201,7 +211,7 @@ void LRUCache_PrefTest()
     printf("LRUCache_PrefTest() begin ...\n");
     high_resolution_clock::time_point startTime = high_resolution_clock::now();
 
-    int sum32 = 0;
+    int sumGet = 0, sumVisit = 0;
     for (int i = 0; i < MAX_TEST_DATA; i++) {
         std::vector<int> & lruData = s_testData[i];
         assert(lruData.size() > 0);
@@ -220,19 +230,36 @@ void LRUCache_PrefTest()
             }
             else if (key < 0) {
                 // Get
-                sum32 += lruCache.get(key);
+                sumGet += lruCache.get(-key);
             }
             else {
                 break;
             }
         }
+
+        int order;
+        auto node = lruCache.begin();
+        for (order = 0; order < lruCapacity; order++) {
+            if (node != lruCache.end()) {
+                sumVisit += node->key * 256 + node->value * (order + 1);
+                node = node->next;
+            }
+            else {
+                break;
+            }
+        }
+#ifndef NDEBUG
+        printf("total = %-6d, lruCapacity = %d\n", order, lruCapacity);
+#endif
     }
 
     high_resolution_clock::time_point endTime = high_resolution_clock::now();
     duration<double, std::ratio<1, 1000>> elapsedTime = endTime - startTime;
+
     printf("LRUCache_PrefTest() end   ...\n");
     printf("\n");
-    printf("Elapsed time: %0.3f ms, sum32 = %d\n", elapsedTime.count(), sum32);
+    printf("Elapsed time: %0.3f ms, sumGet = %d, sumVisit = %d\n",
+           elapsedTime.count(), sumGet, sumVisit);
     printf("\n");
 }
 
@@ -241,7 +268,7 @@ void LRUCache_V1_PrefTest()
     printf("LRUCache_V1_PrefTest() begin ...\n");
     high_resolution_clock::time_point startTime = high_resolution_clock::now();
 
-    int sum32 = 0;
+    int sumGet = 0, sumVisit = 0;
     for (int i = 0; i < MAX_TEST_DATA; i++) {
         std::vector<int> & lruData = s_testData[i];
         assert(lruData.size() > 0);
@@ -260,19 +287,34 @@ void LRUCache_V1_PrefTest()
             }
             else if (key < 0) {
                 // Get
-                sum32 += lruCache.get(key);
+                sumGet += lruCache.get(-key);
             }
             else {
                 break;
             }
         }
+
+        int order;
+        auto node = lruCache.cbegin();
+        for (order = 0; order < lruCapacity; order++) {
+            if (node != lruCache.cend()) {
+                sumVisit += node->first * 256 + node->second * (order + 1);
+                node++;
+            }
+            else break;
+        }
+#ifndef NDEBUG
+        printf("total = %-6d, lruCapacity = %d\n", order, lruCapacity);
+#endif
     }
 
     high_resolution_clock::time_point endTime = high_resolution_clock::now();
     duration<double, std::ratio<1, 1000>> elapsedTime = endTime - startTime;
+
     printf("LRUCache_V1_PrefTest() end   ...\n");
     printf("\n");
-    printf("Elapsed time: %0.3f ms, sum32 = %d\n", elapsedTime.count(), sum32);
+    printf("Elapsed time: %0.3f ms, sumGet = %d, sumVisit = %d\n",
+           elapsedTime.count(), sumGet, sumVisit);
     printf("\n");
 }
 
@@ -281,7 +323,7 @@ void LRUCache_V2_PrefTest()
     printf("LRUCache_V2_PrefTest() begin ...\n");
     high_resolution_clock::time_point startTime = high_resolution_clock::now();
 
-    int sum32 = 0;
+    int sumGet = 0, sumVisit = 0;
     for (int i = 0; i < MAX_TEST_DATA; i++) {
         std::vector<int> & lruData = s_testData[i];
         assert(lruData.size() > 0);
@@ -300,19 +342,34 @@ void LRUCache_V2_PrefTest()
             }
             else if (key < 0) {
                 // Get
-                sum32 += lruCache.get(key);
+                sumGet += lruCache.get(-key);
             }
             else {
                 break;
             }
         }
+
+        int order;
+        auto node = lruCache.begin();
+        for (order = 0; order < lruCapacity; order++) {
+            if (node != lruCache.end()) {
+                sumVisit += node->key * 256 + node->value * (order + 1);
+                node = node->prev;
+            }
+            else break;
+        }
+#ifndef NDEBUG
+        printf("total = %-6d, lruCapacity = %d\n", order, lruCapacity);
+#endif
     }
 
     high_resolution_clock::time_point endTime = high_resolution_clock::now();
     duration<double, std::ratio<1, 1000>> elapsedTime = endTime - startTime;
+
     printf("LRUCache_V2_PrefTest() end   ...\n");
     printf("\n");
-    printf("Elapsed time: %0.3f ms, sum32 = %d\n", elapsedTime.count(), sum32);
+    printf("Elapsed time: %0.3f ms, sumGet = %d, sumVisit = %d\n",
+           elapsedTime.count(), sumGet, sumVisit);
     printf("\n");
 }
 

@@ -29,13 +29,101 @@ public:
 
     static const size_type kDefaultCapacity = 32;
 
-private:
-    size_type size_;
-    size_type capacity_;
+    class free_list {
+    private:
+        node_type * head_;
+        size_type   size_;
+
+    public:
+        free_list() : head_(nullptr), size_(0) {}
+        free_list(node_type * head) : head_(head), size_(0) {}
+        ~free_list() {
+#ifndef NDEBUG
+            this->clear();
+#endif
+        }
+
+        node_type * begin() const { return this->head_; }
+        node_type * end() const { return nullptr; }
+
+        node_type * head() const { return this->head_; }
+        size_type size() const { return this->size_; }
+
+        void set_head(node_type * node) {
+            this->head_ = node;
+        }
+        void set_size(size_type size) {
+            this->size_ = size;
+        }
+
+        bool is_valid() const { return (this->head_ != nullptr); }
+        bool is_empty() const { return (this->size_ == 0); }
+
+        void clear() {
+            this->head_ = nullptr;
+            this->size_ = 0;
+        }
+
+        void reset(node_type * head) {
+            this->head_ = head;
+            this->size_ = 0;
+        }
+
+        void increase() {
+            ++(this->size_);
+        }
+
+        void decrease() {
+            --(this->size_);
+        }
+
+        void push_first(node_type * node) {
+            assert(node != nullptr);
+            assert(node->next == nullptr);
+            this->head_ = node;
+            ++(this->size_);
+        }
+
+        void push_front(node_type * node) {
+            assert(node != nullptr);
+            node->next = this->head_;
+            this->head_ = node;
+            ++(this->size_);
+        }
+
+        node_type * pop_front() {
+            node_type * node = this->head_;
+            assert(node != nullptr);
+            this->head_ = node->next;
+            assert(this->size_ > 0);
+            --(this->size_);
+            return node;
+        }
+
+        void swap(free_list & right) {
+            if (&right != this) {
+                node_type * save_head = this->head_;
+                size_type save_size = this->size_;
+                this->head_ = right.head_;
+                this->size_ = right.size_;
+                right.head_ = save_head;
+                right.size_ = save_size;
+            }
+        }
+    };
+
+    inline void swap(free_list & lhs, free_list & rhs) {
+        lhs.swap(rhs);
+    }
+
+protected:
+    size_type   size_;
+    size_type   capacity_;
 
     node_type * head_;
     node_type * tail_;
     node_type * list_;
+    free_list   freelist_;
 
 public:
     ContinuousDoubleLinkedList()
@@ -56,6 +144,10 @@ public:
 
     size_type sizes() const { return size_; }
     size_type capacity() const { return capacity_; }
+
+    node_type * head()  { return this->head_; }
+    node_type * begin() { return this->head_->next; }
+    node_type * end()   { return this->tail_; }
 
     bool is_empty() const { return (sizes() == 0); }
 
@@ -87,15 +179,23 @@ protected:
         prev->next = next;
         assert(next != nullptr);
         next->prev = prev;
+
+        freelist_.push_front(node);
     }
 
     node_type * make_node(key_type key, value_type value) {
         assert(size_ < capacity_);
-        node_type * new_item = &list_[size_];
-        assert(new_item != nullptr);
-        new_item->key   = key;
-        new_item->value = value;
-        return new_item;
+        node_type * new_node;
+        if (freelist_.is_empty()) {
+            new_node = &list_[size_];
+        }
+        else {
+            new_node = freelist_.pop_front();
+        }
+        assert(new_node != nullptr);
+        new_node->key   = key;
+        new_node->value = value;
+        return new_node;
     }
 
     node_type * push_front_internal(key_type key, value_type value) {
@@ -226,6 +326,9 @@ public:
         if (next != nullptr) {
             next->prev = prev;
         }
+
+        freelist_.push_front(node);
+
         assert(size_ > 0);
         size_--;
     }
@@ -295,17 +398,49 @@ public:
         remove(node);
     }
 
-    void bring_to_front(node_type * node) {
-        remove_internal(node);
-        push_front_internal(node);
+    void move_to_front(node_type * node) {
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
+        assert(prev != nullptr);
+        prev->next = next;
+        assert(next != nullptr);
+        next->prev = prev;
+
+        assert(head_ != nullptr);
+        assert(node != head_);
+
+        // Insert node into the behind of the head node.
+        node->prev = head_;
+        node->next = head_->next;
+
+        // Adjust the head node.
+        head_->next->prev = node;
+        head_->next       = node;
     }
 
     void move_to_back(node_type * node) {
-        remove_internal(node);
-        push_back_internal(node);
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
+        assert(prev != nullptr);
+        prev->next = next;
+        assert(next != nullptr);
+        next->prev = prev;
+
+        assert(tail_ != nullptr);
+        assert(node != tail_);
+
+        // Insert node into the front of the tail node.
+        node->prev = tail_->prev;
+        node->next = tail_;
+
+        // Adjust the tail node.
+        tail_->prev->next = node;
+        tail_->prev       = node;
     }
 
-    void print() {
+    void display() {
         node_type * node = head_->next;
         int index = 0;
         printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);

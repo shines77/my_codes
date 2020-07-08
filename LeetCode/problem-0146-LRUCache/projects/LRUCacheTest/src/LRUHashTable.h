@@ -87,15 +87,16 @@ protected:
 
     void init() {
         HashNode * new_table;
+        assert(capacity_ > 0);
         new_table = new HashNode[capacity_];
         if (new_table) {
+            ::memset(new_table, LRUKey::UnusedKey, capacity_ * sizeof(HashNode));
             table1_ = new_table;
-            ::memset(table1_, LRUKey::UnusedKey, sizeof(HashNode) * capacity_);
         }
         new_table = new HashNode[capacity_];
         if (new_table) {
+            ::memset(new_table, LRUKey::UnusedKey, capacity_ * sizeof(HashNode));
             table2_ = new_table;
-            ::memset(table2_, LRUKey::UnusedKey, sizeof(HashNode) * capacity_);
         }
     }
 

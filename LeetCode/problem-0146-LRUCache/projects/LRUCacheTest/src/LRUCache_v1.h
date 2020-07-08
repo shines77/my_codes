@@ -50,6 +50,23 @@ public:
             }
         }
     }
+
+    std::list<std::pair<int, int>>::iterator begin() {
+        return lru_list_.begin();
+    }
+
+    std::list<std::pair<int, int>>::const_iterator cbegin() const {
+        return lru_list_.cbegin();
+    }
+
+    std::list<std::pair<int, int>>::iterator end() {
+        return lru_list_.end();
+    }
+
+    std::list<std::pair<int, int>>::const_iterator cend() const {
+        return lru_list_.cend();
+    }
+
 private:
     std::unordered_map<int, std::list<std::pair<int, int>>::iterator> cache_;
     std::list<std::pair<int, int>> lru_list_;

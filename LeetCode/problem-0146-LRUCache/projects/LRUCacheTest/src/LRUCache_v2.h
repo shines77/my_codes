@@ -80,10 +80,10 @@ public:
 	// 从链表中移除节点
 	void removeNode(DoubleLinkedList * node) {
 		// 将该节点从链表中移除
-        if (node->prev)
-		    node->prev->next = node->next;
-        if (node->next)
-		    node->next->prev = node->prev;
+        assert(node->prev != nullptr);
+		node->prev->next = node->next;
+        assert(node->next != nullptr);
+		node->next->prev = node->prev;
 	}
 
 	int get(int key) {
@@ -133,6 +133,16 @@ public:
 		    cache_[key] = node;
         }
 	}
+
+    DoubleLinkedList * begin() {
+        assert(tail_ != nullptr);
+        return tail_->prev;
+    }
+
+    DoubleLinkedList * end() {
+        assert(head_ != nullptr);
+        return head_;
+    }
 };
 
 } // namespace V2
