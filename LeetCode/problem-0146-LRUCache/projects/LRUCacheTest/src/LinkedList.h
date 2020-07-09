@@ -142,7 +142,7 @@ public:
         destroy();
     }
 
-    size_type sizes() const { return this->size_ - this->freelist_.size(); }
+    size_type size() const { return this->size_ - this->freelist_.size(); }
     size_type capacity() const { return capacity_; }
 
     node_type * head()  { return this->head_; }
@@ -405,7 +405,7 @@ public:
     void display() {
         node_type * node = head_->next;
         int index = 0;
-        printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);
+        printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)this->size(), (uint32_t)this->capacity());
         while (node && node->next) {            
             printf("[%-3d]  key: %-6d, value: %-6d\n", index, node->key, node->value);
             index++;

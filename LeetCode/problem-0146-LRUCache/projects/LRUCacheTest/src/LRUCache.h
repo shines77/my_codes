@@ -107,7 +107,7 @@ public:
             list_.move_to_front(node);
         }
         else {
-            if (list_.sizes() >= capacity_) {
+            if (list_.size() >= capacity_) {
                 touch(key, value);
             }
             else {
