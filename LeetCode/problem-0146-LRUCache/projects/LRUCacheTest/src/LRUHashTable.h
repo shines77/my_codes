@@ -107,7 +107,7 @@ protected:
             newCapacity = kDefaultCapacity;
             while (newCapacity < capacity)
                 newCapacity *= 2;
-            newCapacity *= 2;
+            //newCapacity *= 2;
         }
         else {
             newCapacity = kDefaultCapacity;
@@ -383,7 +383,7 @@ protected:
             newCapacity = kDefaultCapacity;
             while (newCapacity < capacity)
                 newCapacity *= 2;
-            newCapacity *= 2;
+            //newCapacity *= 2;
         }
         else {
             newCapacity = kDefaultCapacity;
