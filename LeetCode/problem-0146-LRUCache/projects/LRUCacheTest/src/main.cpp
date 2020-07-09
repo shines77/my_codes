@@ -1,5 +1,7 @@
 
+#ifdef _WIN32
 #include <vld.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
