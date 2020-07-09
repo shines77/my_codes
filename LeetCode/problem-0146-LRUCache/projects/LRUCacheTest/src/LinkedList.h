@@ -142,7 +142,7 @@ public:
         destroy();
     }
 
-    size_type sizes() const { return size_; }
+    size_type sizes() const { return this->size_ - this->freelist_.size(); }
     size_type capacity() const { return capacity_; }
 
     node_type * head()  { return this->head_; }
@@ -169,41 +169,6 @@ protected:
         node_type * new_list = new node_type[capacity_];
         assert(new_list != nullptr);
         list_ = new_list;        
-    }
-
-    void remove_internal(node_type * node) {
-        assert(node != nullptr);
-        node_type * prev = node->prev;
-        node_type * next = node->next;
-        assert(prev != nullptr);
-        prev->next = next;
-        assert(next != nullptr);
-        next->prev = prev;
-
-        freelist_.push_front(node);
-    }
-
-    node_type * make_node(key_type key, value_type value) {
-        assert(size_ < capacity_);
-        node_type * new_node;
-        if (freelist_.is_empty()) {
-            new_node = &list_[size_];
-        }
-        else {
-            new_node = freelist_.pop_front();
-        }
-        assert(new_node != nullptr);
-        new_node->key   = key;
-        new_node->value = value;
-        return new_node;
-    }
-
-    node_type * push_front_internal(key_type key, value_type value) {
-        assert(size_ < capacity_);
-        node_type * new_node = make_node(key, value);
-        assert(new_node != nullptr);
-        push_front_internal(new_node);
-        return new_node;
     }
 
     void push_front_internal(node_type * node) {
@@ -293,27 +258,33 @@ public:
         }
     }
 
-    void reset(size_type new_capacity) {
-        if (list_) {
-            delete [] list_;
+    node_type * create_new_node(key_type key, value_type value) {
+        assert(size_ < capacity_);
+        node_type * new_node;
+        if (freelist_.is_empty()) {
+            new_node = &list_[size_];
+            size_++;
+            assert(size_ <= capacity_);
         }
-        node_type * new_list = new node_type[new_capacity];
-        list_ = new_list;
-
-        size_ = 0;
-        capacity_ = new_capacity;
-
-        head_->prev = nullptr;
-        head_->next = tail_;
-        tail_->prev = head_;
-        tail_->next = nullptr;
+        else {
+            new_node = freelist_.pop_front();
+        }
+        assert(new_node != nullptr);
+        new_node->key   = key;
+        new_node->value = value;
+        return new_node;
     }
 
     void remove(node_type * node) {
-        remove_internal(node);
+        assert(node != nullptr);
+        node_type * prev = node->prev;
+        node_type * next = node->next;
+        assert(prev != nullptr);
+        prev->next = next;
+        assert(next != nullptr);
+        next->prev = prev;
 
-        assert(size_ > 0);
-        size_--;
+        freelist_.push_front(node);
     }
 
     void remove_safe(node_type * node) {
@@ -328,16 +299,13 @@ public:
         }
 
         freelist_.push_front(node);
-
-        assert(size_ > 0);
-        size_--;
     }
 
     node_type * push_front_fast(key_type key, value_type value) {
-        node_type * new_node = push_front_internal(key, value);
+        assert(size_ < capacity_);
+        node_type * new_node = create_new_node(key, value);
         assert(new_node != nullptr);
-        size_++;
-        assert(size_ <= capacity_);
+        push_front_internal(new_node);
         return new_node;
     }
 
@@ -351,18 +319,12 @@ public:
     void push_front(node_type * node) {
         if (size_ < capacity_) {
             push_front_internal(node);
-
-            size_++;
-            assert(size_ <= capacity_);
         }
     }
 
     void push_back(node_type * node) {
         if (size_ < capacity_) {
             push_back_internal(node);
-
-            size_++;
-            assert(size_ <= capacity_);
         }
     }
 
