@@ -57,7 +57,7 @@ public:
     size_type capacity() const { return list_.capacity(); }
 
 protected:
-    void insert(const key_type & key, const value_type & value) {
+    void add(const key_type & key, const value_type & value) {
         node_type * new_node = list_.push_front_fast(key, value);
         if (new_node) {
             cache_.insert(key, new_node);
@@ -111,7 +111,7 @@ public:
                 touch(key, value);
             }
             else {
-                insert(key, value);
+                add(key, value);
             }
         }
     }
@@ -164,7 +164,7 @@ public:
     size_type capacity() const { return list_.capacity(); }
 
 protected:
-    void insert(const key_type & key, const value_type & value) {
+    void add(const key_type & key, const value_type & value) {
         node_type * new_node = list_.push_front_fast(key, value);
         if (new_node) {
             cache_.insert(std::make_pair(key, new_node));
@@ -220,7 +220,7 @@ public:
                 touch(key, value);
             }
             else {
-                insert(key, value);
+                add(key, value);
             }
         }
     }
