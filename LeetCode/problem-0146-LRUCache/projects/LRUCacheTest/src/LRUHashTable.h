@@ -105,7 +105,6 @@ protected:
             newCapacity = kDefaultCapacity;
             while (newCapacity < capacity)
                 newCapacity *= 2;
-            newCapacity *= 2;
         }
         else {
             newCapacity = kDefaultCapacity;
@@ -140,47 +139,47 @@ public:
         hash_type index1 = getHash1(key);
         assert(index1 < capacity_);
 
-        HashNode * start = &table1_[index1];
+        HashNode * cur = &table1_[index1];
         HashNode * end = ((index1 + kFirstLayerSearchStep) <= capacity_) ?
-            (start + kFirstLayerSearchStep) : &table1_[capacity_];
-        assert(start < end);
+            (cur + kFirstLayerSearchStep) : &table1_[capacity_];
+        assert(cur < end);
 
         // Search for up to [kFirstLayerSearchStep = 6] steps.
         do {
-            if (unlikely(start->key == LRUKey::UnusedKey)) {
+            if (unlikely(cur->key == LRUKey::UnusedKey)) {
                 break;
             }
-            if (unlikely(start->key == key)) {
-                return start;
+            else if (unlikely(cur->key == key)) {
+                return cur;
             }
-            start++;
-        } while (start != end);
+            cur++;
+        } while (cur != end);
 
         // The second layer table.
         hash_type index2 = getHash2(key);
         assert(index2 < capacity_);
 
-        start = &table2_[index2];
+        cur = &table2_[index2];
         end = &table2_[capacity_];
-        assert(start < end);
+        assert(cur < end);
 
-        HashNode * origin = start;
+        HashNode * origin = cur;
         do {
-            if (unlikely(start->key == LRUKey::UnusedKey)) {
+            if (unlikely(cur->key == LRUKey::UnusedKey)) {
                 break;
             }
-            if (unlikely(start->key == key)) {
-                return start;
+            else if (unlikely(cur->key == key)) {
+                return cur;
             }
-            start++;
+            cur++;
             // Reach back to the original node.
-            if (unlikely(start == origin)) {
+            if (unlikely(cur == origin)) {
                 break;
             }
             // Reroll to the beginning of the table2.
-            if (unlikely(start == end)) {
-                start = table2_;
-                if (unlikely(start == origin)) {
+            if (unlikely(cur == end)) {
+                cur = table2_;
+                if (unlikely(cur == origin)) {
                     break;
                 }
             }
@@ -194,65 +193,83 @@ public:
         hash_type index1 = getHash1(key);
         assert(index1 < capacity_);
 
-        HashNode * start = &table1_[index1];
+        HashNode * cur = &table1_[index1];
         HashNode * end = ((index1 + kFirstLayerSearchStep) <= capacity_) ?
-            (start + kFirstLayerSearchStep) : &table1_[capacity_];
-        assert(start < end);
+            (cur + kFirstLayerSearchStep) : &table1_[capacity_];
+        assert(cur < end);
 
         // Search for up to [kFirstLayerSearchStep = 6] steps.
+        HashNode * first_empty = nullptr;
         do {
-            // If the key is LRUKey::UnusedKey or LRUKey::EmptyKey,
+            // If the key is LRUKey::UnusedKey, the key is not exists.
+            // If the key is LRUKey::EmptyKey, the EmptyKey value maybe write by another key.
             // insert the new value to first layer.
-            if (unlikely((start->key == LRUKey::UnusedKey)
-                      || (start->key == LRUKey::EmptyKey))) {
-                start->key = key;
-                start->value = value;
+            if (unlikely(cur->key == LRUKey::UnusedKey)) {
+                cur->key = key;
+                cur->value = value;
                 size_++;
                 return;
             }
-            if (unlikely(start->key == key)) {
-                start->value = value;
+            else if (unlikely(cur->key == key)) {
+                cur->value = value;
                 return;
             }
-            start++;
-        } while (start != end);
+            else if (unlikely((first_empty == nullptr) && (cur->key == LRUKey::EmptyKey))) {
+                first_empty = cur;
+            }
+            cur++;
+        } while (cur != end);
 
         // The second layer table.
         hash_type index2 = getHash2(key);
         assert(index2 < capacity_);
 
-        start = &table2_[index2];
+        cur = &table2_[index2];
         end = &table2_[capacity_];
-        assert(start < end);
+        assert(cur < end);
 
-        HashNode * origin = start;
+        HashNode * origin = cur;
+        HashNode * second_empty = nullptr;
         do {
             // If the key is LRUKey::UnusedKey or LRUKey::EmptyKey,
             // insert the new value to second layer.
-            if (unlikely((start->key == LRUKey::UnusedKey)
-                      || (start->key == LRUKey::EmptyKey))) {
-                start->key = key;
-                start->value = value;
+            if (unlikely(cur->key == LRUKey::UnusedKey)) {
+                cur->key = key;
+                cur->value = value;
                 size_++;
                 return;
             }
-            if (unlikely(start->key == key)) {
-                start->value = value;
+            else if (unlikely(cur->key == key)) {
+                cur->value = value;
                 return;
             }
-            start++;
+            else if (unlikely((second_empty == nullptr) && (cur->key == LRUKey::EmptyKey))) {
+                second_empty = cur;
+            }
+            cur++;
             // Reach back to the original node.
-            if (unlikely(start == origin)) {
+            if (unlikely(cur == origin)) {
                 break;
             }
             // Reroll to the beginning of the table2.
-            if (unlikely(start == end)) {
-                start = table2_;
-                if (unlikely(start == origin)) {
+            if (unlikely(cur == end)) {
+                cur = table2_;
+                if (unlikely(cur == origin)) {
                     break;
                 }
             }
         } while (1);
+
+        if (first_empty != nullptr) {
+            first_empty->key = key;
+            first_empty->value = value;
+            size_++;
+        }
+        else if (second_empty != nullptr) {
+            second_empty->key = key;
+            second_empty->value = value;
+            size_++;
+        }
     }
 
     void remove(const key_type & key) {

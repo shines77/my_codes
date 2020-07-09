@@ -168,6 +168,7 @@ protected:
         node_type * new_node = list_.push_front_fast(key, value);
         if (new_node) {
             cache_.insert(std::make_pair(key, new_node));
+            //cache_.emplace(key, new_node);
         }
     }
 
@@ -175,18 +176,20 @@ protected:
         // Pop the last node.
         node_type * tail = list_.back();
         if (tail != nullptr) {
-            list_.pop_back();
+            //list_.pop_back();
             if (key != tail->key) {
                 // Remove the old key from the hash table.
                 cache_.erase(tail->key);
                 // Insert the new key and value to the hash table.
                 cache_.insert(std::make_pair(key, tail));
+                //cache_.emplace(key, tail);
             }
             // Save the new key and value.
             tail->key = key;
             tail->value = value;
             // Push the last node to head again.
-            list_.push_front(tail);
+            //list_.push_front(tail);
+            list_.move_to_front(tail);
         }
     }
 
