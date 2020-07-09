@@ -44,7 +44,7 @@ private:
 	std::unordered_map<int, DoubleLinkedList *> cache_;
 
 public:
-	LRUCache(int capacity) : capacity_(0), head_(nullptr), tail_(nullptr) {
+	LRUCache(int capacity) : capacity_(0), head_(nullptr), tail_(nullptr), cache_(capacity) {
 		// 初始化
 		capacity_ = capacity;
 		head_ = new DoubleLinkedList(-1, -1);

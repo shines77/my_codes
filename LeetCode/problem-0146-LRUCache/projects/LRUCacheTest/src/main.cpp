@@ -24,7 +24,12 @@ using namespace std::chrono;
 #ifdef NDEBUG
 #define MAX_TEST_DATA   1024
 #else
-#define MAX_TEST_DATA   16
+#define MAX_TEST_DATA   (16 * 64)
+#endif
+
+/* Invalid the debug info print on debug mode. */
+#ifndef NDEBUG
+#define NDEBUG
 #endif
 
 std::vector<int> s_testData[MAX_TEST_DATA];
@@ -35,18 +40,18 @@ std::vector<int> s_testData[MAX_TEST_DATA];
 //
 
 /************************************************************************
- Test data
-
- Input:
-
-    ["LRUCache","put","put","get","put","get","put","get","get","get"]
-    [[2],[1,1],[2,2],[1],[3,3],[2],[4,4],[1],[3],[4]]
-
- Output:
-
-    [null,null,null,1,null,-1,null,-1,3,4]
-
- ************************************************************************/
+/* Test data
+/*
+/* Input:
+/*
+/*    ["LRUCache","put","put","get","put","get","put","get","get","get"]
+/*    [[2],[1,1],[2,2],[1],[3,3],[2],[4,4],[1],[3],[4]]
+/*
+/* Output:
+/*
+/*    [null,null,null,1,null,-1,null,-1,3,4]
+/*
+/************************************************************************/
 
 void LeetCode_LRUCache_UintTest()
 {
@@ -515,6 +520,68 @@ void LRUCache_V1_PrefTest2()
     printf("\n");
 }
 
+void LRUCache_V2_PrefTest2()
+{
+    printf("LRUCache_V2_PrefTest2() begin ...\n");
+
+    double elapsedMillsecs = 0.0f;
+
+    int sumGet = 0, sumVisit = 0;
+    for (int i = 0; i < MAX_TEST_DATA; i++) {
+        std::vector<int> & lruData = s_testData[i];
+        assert(lruData.size() > 0);
+        int lruCapacity = lruData[0];
+        assert(lruCapacity > 0);
+        LeetCode::V2::LRUCache lruCache(lruCapacity);
+        assert(lruData.size() > 1);
+        int lruActionSize = lruData[1];
+
+        high_resolution_clock::time_point startTime = high_resolution_clock::now();
+
+        int index = 2;
+        for (int j = 0; j < lruActionSize; j++) {
+            int key = lruData[index++];
+            if (key > 0) {
+                // Put
+                int value = lruData[index++];
+                lruCache.put(key, value);
+            }
+            else if (key < 0) {
+                // Get
+                sumGet += lruCache.get(-key);
+            }
+            else {
+                break;
+            }
+        }
+
+        int order;
+        auto node = lruCache.begin();
+        for (order = 0; order < lruCapacity; order++) {
+            if (node != lruCache.end()) {
+                sumVisit += node->key * 256 + node->value * (order + 1);
+                node = node->prev;
+            }
+            else break;
+        }
+
+        high_resolution_clock::time_point endTime = high_resolution_clock::now();
+        duration<double, std::ratio<1, 1000>> elapsedTime = endTime - startTime;
+
+        elapsedMillsecs += elapsedTime.count();
+
+#ifndef NDEBUG
+        printf("total = %-6d, lruCapacity = %d, lruActionSize = %d\n", order, lruCapacity, lruActionSize);
+#endif
+    }
+
+    printf("LRUCache_V2_PrefTest2() end   ...\n");
+    printf("\n");
+    printf("Elapsed time: %0.3f ms, sumGet = %d, sumVisit = %d\n",
+           elapsedMillsecs, sumGet, sumVisit);
+    printf("\n");
+}
+
 void LeetCode_LRUCache_PrefTest()
 {
     cpu_warmup(1000);
@@ -530,6 +597,7 @@ void LeetCode_LRUCache_PrefTest()
 
     LRUCache_PrefTest2();
     LRUCache_V1_PrefTest2();
+    LRUCache_V2_PrefTest2();
 
     printf("---------------------------------------------------------------------\n\n");
 }
