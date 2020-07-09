@@ -56,8 +56,8 @@ public:
             this->size_ = size;
         }
 
-        bool is_valid() const { return (this->head_ != nullptr); }
-        bool is_empty() const { return (this->size_ == 0); }
+        bool is_valid() const { return (this->head() != nullptr); }
+        bool is_empty() const { return (this->size() == 0); }
 
         void clear() {
             this->head_ = nullptr;
@@ -149,7 +149,7 @@ public:
     node_type * begin() { return this->head_->next; }
     node_type * end()   { return this->tail_; }
 
-    bool is_empty() const { return (sizes() == 0); }
+    bool is_empty() const { return (this->size() == 0); }
 
 protected:
     void init() {
