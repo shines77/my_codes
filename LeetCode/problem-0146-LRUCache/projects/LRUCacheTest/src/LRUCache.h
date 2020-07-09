@@ -21,7 +21,7 @@
 
 namespace LeetCode {
 
-#if 1
+#if 0
 
 template <typename KeyT, typename ValueT, ValueT kFailedValue = LRUValue::FailedValue>
 class LRUCacheBase {
@@ -150,10 +150,10 @@ private:
     hash_table_type cache_;
 
 public:
-    LRUCacheBase() : capacity_(kDefaultCapacity), list_(kDefaultCapacity) {
+    LRUCacheBase() : capacity_(kDefaultCapacity), list_(kDefaultCapacity), cache_(kDefaultCapacity) {
     }
 
-    LRUCacheBase(size_t capacity) : capacity_(capacity), list_(capacity) {
+    LRUCacheBase(size_t capacity) : capacity_(capacity), list_(capacity), cache_(kDefaultCapacity) {
     }
 
     ~LRUCacheBase() {
@@ -216,7 +216,7 @@ public:
             list_.move_to_front(node);
         }
         else {
-            if (list_.sizes() >= capacity_) {
+            if (list_.size() >= capacity_) {
                 touch(key, value);
             }
             else {
