@@ -21,7 +21,7 @@
 
 namespace LeetCode {
 
-#if 0
+#if 1
 
 template <typename KeyT, typename ValueT, ValueT kFailedValue = LRUValue::FailedValue>
 class LRUCacheBase {
