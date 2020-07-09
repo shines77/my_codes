@@ -28,23 +28,23 @@ struct DoubleLinkedList {
 	int value;
 
 	DoubleLinkedList(int key, int value)
-        : key(key), value(value), prev(nullptr), next(nullptr) {
+        : prev(nullptr), next(nullptr), key(key), value(value) {
     }
 };
 
 class LRUCache {
 private:
-	// 容量
-	int capacity_;
 	// 表头
 	DoubleLinkedList * head_;
 	// 表尾
 	DoubleLinkedList * tail_;
+	// 容量
+	int capacity_;
 	// 缓存，记录key所对应的链表节点
 	std::unordered_map<int, DoubleLinkedList *> cache_;
 
 public:
-	LRUCache(int capacity) : capacity_(0), head_(nullptr), tail_(nullptr), cache_(capacity) {
+	LRUCache(int capacity) : head_(nullptr), tail_(nullptr), capacity_(0), cache_(capacity) {
 		// 初始化
 		capacity_ = capacity;
 		head_ = new DoubleLinkedList(-1, -1);
@@ -114,7 +114,7 @@ public:
 		}
         else {
 		    // 如果内存已经放满
-		    if (cache_.size() >= capacity_) {
+		    if (cache_.size() >= size_t(capacity_)) {
 			    // 获取链表头结点的key
                 DoubleLinkedList * topNode = head_->next;
 			    int topKey = topNode->key;

@@ -319,10 +319,10 @@ public:
     void remove_safe(node_type * node) {
         assert(node != nullptr);
         node_type * prev = node->prev;
+        node_type * next = node->next;
         if (prev != nullptr) {
             prev->next = next;
         }
-        node_type * next = node->next;
         if (next != nullptr) {
             next->prev = prev;
         }
@@ -445,7 +445,7 @@ public:
         int index = 0;
         printf("LRUCache: (size = %u, capacity = %u)\n\n", (uint32_t)size_, (uint32_t)capacity_);
         while (node && node->next) {            
-            printf("[%-3d]  key: %-06d, value: %-6d\n", index, node->key, node->value);
+            printf("[%-3d]  key: %-6d, value: %-6d\n", index, node->key, node->value);
             index++;
             node = node->next;
         }

@@ -22,7 +22,7 @@ namespace V1 {
 
 class LRUCache {
 public:
-    LRUCache(int capacity) : capacity_(capacity), cache_(capacity) {
+    LRUCache(int capacity) : cache_(capacity), capacity_(capacity) {
     }
     
     int get(int key) {
