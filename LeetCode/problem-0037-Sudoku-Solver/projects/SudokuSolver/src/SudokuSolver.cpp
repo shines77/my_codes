@@ -7,12 +7,15 @@
 #include <cstdint>
 #include <cstddef>
 #include <vector>
+#include <bitset>
 
 #include "StopWatch.h"
+#include "CPUWarmUp.h"
 
-#define MATRIX_USE_BITMAP  0
+#define MATRIX_USE_STD_BITSET   1
+#define MATRIX_USE_BITMAP       0
 
-static const char test_board[81] = {
+static const char test_board[2][81] = {
     '5', '3', '.', '.', '7', '.', '.', '.', '.',
     '6', '.', '.', '1', '9', '5', '.', '.', '.',
     '.', '9', '8', '.', '.', '.', '.', '6', '.',
@@ -21,7 +24,17 @@ static const char test_board[81] = {
     '7', '.', '.', '.', '2', '.', '.', '.', '6',
     '.', '6', '.', '.', '.', '.', '2', '8', '.',
     '.', '.', '.', '4', '1', '9', '.', '.', '5',
-    '.', '.', '.', '.', '8', '.', '.', '7', '9'
+    '.', '.', '.', '.', '8', '.', '.', '7', '9',
+
+    '4', '.', '2', '.', '.', '.', '9', '.', '.',
+    '.', '.', '.', '.', '6', '1', '.', '.', '.',
+    '.', '1', '9', '.', '.', '.', '.', '.', '.',
+    '7', '.', '5', '.', '.', '.', '6', '.', '.',
+    '2', '.', '4', '7', '.', '.', '.', '.', '5',
+    '.', '.', '.', '.', '9', '.', '7', '.', '.',
+    '.', '8', '.', '2', '.', '9', '.', '1', '.',
+    '.', '.', '7', '.', '.', '4', '.', '.', '.',
+    '.', '.', '.', '.', '.', '.', '.', '5', '2',
 };
 
 namespace LeetCode {
@@ -36,10 +49,9 @@ public:
 
 private:
     size_t * bits_;
-    size_t bitcount_;
 
 public:
-    BitMap() : bits_(nullptr), bitcount_(0) {
+    BitMap() : bits_(nullptr) {
         bits_ = new size_t[kBytes];
     }
     ~BitMap() {
@@ -54,16 +66,13 @@ public:
     size_t size() const  { return Bits; }
     void * data() const  { return (void *)bits_; }
 
-    size_t bitcount() const { return bitcount_; }
-
     void clear() {
         if (bits_) {
             ::memset(bits_, 0, kBytes * sizeof(size_t));
         }
-        bitcount_ = 0;
     }
 
-    bool get(size_t pos) const {
+    bool test(size_t pos) const {
         assert(pos < Bits);
         size_t index = pos / kAlignmentBits;
         size_t shift = pos % kAlignmentBits;
@@ -79,7 +88,6 @@ public:
 
     void set(size_t pos) {
         assert(pos < Bits);
-        bitcount_++;
         size_t index = pos / kAlignmentBits;
         size_t shift = pos % kAlignmentBits;
         bits_[index] |= (1ULL << shift);
@@ -87,7 +95,6 @@ public:
 
     void reset(size_t pos) {
         assert(pos < Bits);
-        bitcount_--;
         size_t index = pos / kAlignmentBits;
         size_t shift = pos % kAlignmentBits;
         bits_[index] &= ~(1ULL << shift);
@@ -102,10 +109,9 @@ public:
 
 private:
     uint8_t * bytes_;
-    size_t bitcount_;
 
 public:
-    BitSet() : bytes_(nullptr), bitcount_(0) {
+    BitSet() : bytes_(nullptr) {
         bytes_ = new uint8_t[kBytes];
     }
     ~BitSet() {
@@ -120,16 +126,13 @@ public:
     size_t size() const  { return Bits; }
     void * data() const  { return (void *)bytes_; }
 
-    size_t bitcount() const { return bitcount_; }
-
     void clear() {
         if (bytes_) {
             ::memset(bytes_, 0, kBytes * sizeof(uint8_t));
         }
-        bitcount_ = 0;
     }
 
-    bool get(size_t pos) const {
+    bool test(size_t pos) const {
         assert(pos < Bits);
         return (bytes_[pos] != 0);
     }
@@ -141,13 +144,11 @@ public:
 
     void set(size_t pos) {
         assert(pos < Bits);
-        bitcount_++;
         bytes_[pos] = 1;
     }
 
     void reset(size_t pos) {
         assert(pos < Bits);
-        bitcount_--;
         bytes_[pos] = 0;
     }
 
@@ -165,12 +166,13 @@ public:
 template <size_t Rows, size_t Cols>
 class BitMartix {
 private:
-#if MATRIX_USE_BITMAP
+#if MATRIX_USE_STD_BITSET
+    typedef std::bitset<Cols>    bitmap_type;
+#elif MATRIX_USE_BITMAP
     typedef BitMap<Cols>    bitmap_type;
 #else
     typedef BitSet<Cols>    bitmap_type;
 #endif
-
     bitmap_type data_[Rows];
     size_t rows_;
 
@@ -189,9 +191,21 @@ public:
     }
 
     void clear() {
+#if (MATRIX_USE_STD_BITSET == 0)
         for (size_t row = 0; row < Rows; row++) {
             data_[row].clear();
         }
+#endif
+    }
+
+    bool test(size_t row, size_t col) {
+        assert(pos < Rows);
+        return data_[pos].test(col);
+    }
+
+    size_t value(size_t row, size_t col) {
+        assert(pos < Rows);
+        return data_[pos].value(col);
     }
 
     bitmap_type & operator [] (size_t pos) {
@@ -211,9 +225,9 @@ class SudokuSolver {
 public:
     static const size_t Rows = 9;
     static const size_t Cols = 9;
-    static const size_t Places = 9;
+    static const size_t Numbers = 9;
 
-    static const size_t BoardSize = Rows * Cols * Places;
+    static const size_t BoardSize = Rows * Cols * Numbers;
 
     typedef BitMartix<BoardSize, Rows * Cols * 4> matrix_type;
 
@@ -221,7 +235,7 @@ private:
     matrix_type matrix;
     size_t rows[BoardSize + 1];
     size_t cols[BoardSize + 1];
-    size_t places[BoardSize + 1];
+    size_t numbers[BoardSize + 1];
 
 public:
     SudokuSolver(const std::vector<std::vector<char>> & board) {
@@ -254,25 +268,25 @@ private:
         matrix.clear();
         for (size_t row = 0; row < Rows; row++) {
             for (size_t col = 0; col < Cols; col++) {
-                size_t m = 0, n = Places - 1;
+                size_t m = 0, n = Numbers - 1;
                 if (board[row][col] != '.') {
                     m = n = board[row][col] - '1';
                 }
-                for (size_t place = m; place <= n; place++) {
+                for (size_t number = m; number <= n; number++) {
 #if MATRIX_USE_BITMAP
                     matrix[index].set(81 * 0 + row * 9 + col);
-                    matrix[index].set(81 * 1 + row * 9 + place);
-                    matrix[index].set(81 * 2 + col * 9 + place);
-                    matrix[index].set(81 * 3 + (row / 3 * 3 + col / 3) * 9 + place);
+                    matrix[index].set(81 * 1 + row * 9 + number);
+                    matrix[index].set(81 * 2 + col * 9 + number);
+                    matrix[index].set(81 * 3 + (row / 3 * 3 + col / 3) * 9 + number);
 #else
                     matrix[index][81 * 0 + row * 9 + col] = 1;
-                    matrix[index][81 * 1 + row * 9 + place] = 1;
-                    matrix[index][81 * 2 + col * 9 + place] = 1;
-                    matrix[index][81 * 3 + (row / 3 * 3 + col / 3) * 9 + place] = 1;
+                    matrix[index][81 * 1 + row * 9 + number] = 1;
+                    matrix[index][81 * 2 + col * 9 + number] = 1;
+                    matrix[index][81 * 3 + (row / 3 * 3 + col / 3) * 9 + number] = 1;
 #endif
                     rows[index + 1] = row;
                     cols[index + 1] = col;
-                    places[index + 1] = place;
+                    numbers[index + 1] = number;
                     index++;
                 }
             }
@@ -284,9 +298,17 @@ public:
                        const DancingLinks * dancingLinks);
 
     static void display_board(const std::vector<std::vector<char>> & board, bool is_input = false) {
+        int filled = 0;
+        for (size_t row = 0; row < Rows; row++) {
+            for (size_t col = 0; col < Cols; col++) {
+                if (board[row][col] != '.')
+                    filled++;
+            }
+        }
+
         if (is_input) {
-            printf("\n");
-            printf("The input is:\n");
+            //printf("\n");
+            printf("The input is: (filled = %d)\n", filled);
         }
         else {
             printf("The answer is:\n");
@@ -378,7 +400,7 @@ private:
         for (int row = rows - 1; row >= 0; row--) {
             int head = free_idx, tail = free_idx;
             for (int col = 0; col < cols; col++) {
-                if (matrix[row].get(col)) {
+                if (matrix[row].test(col)) {
                     tail = this->insert(head, tail, row + 1, col + 1);
                 }
             }
@@ -538,7 +560,7 @@ public:
 void SudokuSolver::output_answer(std::vector<std::vector<char>> & board,
                                  const DancingLinks * dancingLinks) {
     for (auto idx : dancingLinks->get_answer()) {
-        board[rows[idx]][cols[idx]] = (char)places[idx] + '1';
+        board[rows[idx]][cols[idx]] = (char)numbers[idx] + '1';
     }
 }
 
@@ -568,22 +590,133 @@ public:
 } // namespace Problem_0037
 } // namespace LeetCode
 
+namespace LeetCode {
+namespace Problem_0037 {
+namespace v2 {
+
+class Solution {
+public:
+    std::bitset<9> getPossibleStatus(int x, int y)
+    {
+        return ~(rows[x] | cols[y] | cells[x / 3][y / 3]);
+    }
+
+    std::vector<int> getNext(std::vector<std::vector<char>> & board)
+    {
+        std::vector<int> ret;
+        int minCnt = 10;
+        for (int i = 0; i < board.size(); i++) {
+            for (int j = 0; j < board[i].size(); j++) {
+                if (board[i][j] != '.')
+                    continue;
+                auto cur = getPossibleStatus(i, j);
+                if (cur.count() >= minCnt)
+                    continue;
+                ret = { i, j };
+                minCnt = (int)cur.count();
+            }
+        }
+        return ret;
+    }
+
+    void fillNum(int x, int y, int n, bool fillFlag)
+    {
+        rows[x][n] = (fillFlag) ? 1 : 0;
+        cols[y][n] = (fillFlag) ? 1 : 0;
+        cells[x/3][y/3][n] = (fillFlag) ? 1: 0;
+    }
+    
+    bool dfs(std::vector<std::vector<char>> & board, int cnt)
+    {
+        if (cnt == 0)
+            return true;
+
+        auto next = getNext(board);
+        auto bits = getPossibleStatus(next[0], next[1]);
+        for (int n = 0; n < bits.size(); n++) {
+            if (!bits.test(n))
+                continue;
+            fillNum(next[0], next[1], n, true);
+            board[next[0]][next[1]] = n + '1';
+            if (dfs(board, cnt - 1))
+                return true;
+            board[next[0]][next[1]] = '.';
+            fillNum(next[0], next[1], n, false);
+        }
+        return false;
+    }
+
+    void solveSudoku(std::vector<std::vector<char>> & board) 
+    {
+        v1::SudokuSolver::display_board(board, true);
+
+        jtest::StopWatch sw;
+        sw.start();
+
+        rows = std::vector<std::bitset<9>>(9, std::bitset<9>());
+        cols = std::vector<std::bitset<9>>(9, std::bitset<9>());
+        cells = std::vector<std::vector<std::bitset<9>>>(3, std::vector<std::bitset<9>>(3, std::bitset<9>()));
+
+        int cnt = 0;
+        for (int i = 0; i < board.size(); i++) {
+            for (int j = 0; j < board[i].size(); j++) {
+                cnt += (board[i][j] == '.');
+                if (board[i][j] == '.')
+                    continue;
+                int n = board[i][j] - '1';
+                rows[i] |= (1ULL << n);
+                cols[j] |= (1ULL << n);
+                cells[i / 3][j / 3] |= (1ULL << n);
+            }
+        }
+        dfs(board, cnt);
+
+        sw.stop();
+
+        v1::SudokuSolver::display_board(board);
+        printf("Elapsed time: %0.3f ms\n\n", sw.getElapsedMillisec());
+    }
+
+private:
+    std::vector<std::bitset<9>> rows;
+    std::vector<std::bitset<9>> cols;
+    std::vector<std::vector<std::bitset<9>>> cells;
+};
+
+} // namespace v2
+} // namespace Problem_0037
+} // namespace LeetCode
+
 int main(int argn, char * argv[])
 {
     using namespace LeetCode::Problem_0037;
+
+    jtest::CPU::warmup(1000);
 
     // Test case
     std::vector<std::vector<char>> board;
     for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
         std::vector<char> line;
         for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
-            line.push_back(test_board[row * 9 + col]);
+            line.push_back(test_board[1][row * 9 + col]);
         }
         board.push_back(line);
     }
 
-    v1::Solution solution;
-    solution.solveSudoku(board);
+    v1::Solution solution1;
+    solution1.solveSudoku(board);
+
+    board.clear();
+    for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
+        std::vector<char> line;
+        for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
+            line.push_back(test_board[1][row * 9 + col]);
+        }
+        board.push_back(line);
+    }
+
+    v2::Solution solution2;
+    solution2.solveSudoku(board);
 
 #if !defined(NDEBUG) && defined(_MSC_VER)
     ::system("pause");

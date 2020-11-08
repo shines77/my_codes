@@ -15,5 +15,8 @@
     <ClInclude Include="src\StopWatch.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\CPUWarmUp.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

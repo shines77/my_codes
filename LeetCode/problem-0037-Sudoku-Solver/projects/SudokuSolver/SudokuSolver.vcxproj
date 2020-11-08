@@ -153,6 +153,7 @@
     <ClCompile Include="src\SudokuSolver.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\CPUWarmUp.h" />
     <ClInclude Include="src\StopWatch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
