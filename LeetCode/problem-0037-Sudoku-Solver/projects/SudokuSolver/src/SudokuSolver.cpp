@@ -693,30 +693,40 @@ int main(int argn, char * argv[])
 
     jtest::CPU::warmup(1000);
 
-    // Test case
-    std::vector<std::vector<char>> board;
-    for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
-        std::vector<char> line;
-        for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
-            line.push_back(test_board[1][row * 9 + col]);
+    {
+        printf("--------------------------------\n\n");
+        printf("Sudiku: Dancing Links\n\n");
+        // Test case 2
+        std::vector<std::vector<char>> board;
+        for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
+            std::vector<char> line;
+            for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
+                line.push_back(test_board[1][row * 9 + col]);
+            }
+            board.push_back(line);
         }
-        board.push_back(line);
+
+        v1::Solution solution1;
+        solution1.solveSudoku(board);
     }
 
-    v1::Solution solution1;
-    solution1.solveSudoku(board);
+    {
+        printf("--------------------------------\n\n");
+        printf("Sudiku: Depth first search\n\n");
 
-    board.clear();
-    for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
-        std::vector<char> line;
-        for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
-            line.push_back(test_board[1][row * 9 + col]);
+        // Test case 2
+        std::vector<std::vector<char>> board;
+        for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
+            std::vector<char> line;
+            for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
+                line.push_back(test_board[1][row * 9 + col]);
+            }
+            board.push_back(line);
         }
-        board.push_back(line);
-    }
 
-    v2::Solution solution2;
-    solution2.solveSudoku(board);
+        v2::Solution solution2;
+        solution2.solveSudoku(board);
+    }
 
 #if !defined(NDEBUG) && defined(_MSC_VER)
     ::system("pause");
