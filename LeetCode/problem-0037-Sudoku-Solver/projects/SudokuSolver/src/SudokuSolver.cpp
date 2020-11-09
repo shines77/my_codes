@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <memory.h>
 #include <assert.h>
 
 #include <cstdint>
@@ -226,13 +228,13 @@ public:
     }
 
     bool test(size_t row, size_t col) {
-        assert(pos < Rows);
-        return data_[pos].test(col);
+        assert(row < Rows);
+        return data_[row].test(col);
     }
 
     size_t value(size_t row, size_t col) {
-        assert(pos < Rows);
-        return data_[pos].value(col);
+        assert(row < Rows);
+        return data_[row].value(col);
     }
 
     bitmap_type & operator [] (size_t pos) {
@@ -671,8 +673,8 @@ public:
     {
         std::vector<int> ret;
         int minCnt = 10;
-        for (int i = 0; i < board.size(); i++) {
-            for (int j = 0; j < board[i].size(); j++) {
+        for (int i = 0; i < (int)board.size(); i++) {
+            for (int j = 0; j < (int)board[i].size(); j++) {
                 if (board[i][j] != '.')
                     continue;
                 auto cur = getPossibleStatus(i, j);
@@ -699,7 +701,7 @@ public:
 
         auto next = getNext(board);
         auto bits = getPossibleStatus(next[0], next[1]);
-        for (int n = 0; n < bits.size(); n++) {
+        for (int n = 0; n < (int)bits.size(); n++) {
             if (!bits.test(n))
                 continue;
             fillNum(next[0], next[1], n, true);
@@ -724,8 +726,8 @@ public:
         cells = std::vector<std::vector<std::bitset<9>>>(3, std::vector<std::bitset<9>>(3, std::bitset<9>()));
 
         int cnt = 0;
-        for (int i = 0; i < board.size(); i++) {
-            for (int j = 0; j < board[i].size(); j++) {
+        for (int i = 0; i < (int)board.size(); i++) {
+            for (int j = 0; j < (int)board[i].size(); j++) {
                 cnt += (board[i][j] == '.');
                 if (board[i][j] == '.')
                     continue;
@@ -764,9 +766,9 @@ int main(int argn, char * argv[])
         printf("Sudiku: Dancing Links\n\n");
         // Test case 2
         std::vector<std::vector<char>> board;
-        for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
+        for (int row = 0; row < (int)v1::SudokuSolver::Rows; row++) {
             std::vector<char> line;
-            for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
+            for (int col = 0; col < (int)v1::SudokuSolver::Cols; col++) {
                 line.push_back(test_board[DIFFICULTY_LEVEL][row * 9 + col]);
             }
             board.push_back(line);
@@ -782,9 +784,9 @@ int main(int argn, char * argv[])
 
         // Test case 2
         std::vector<std::vector<char>> board;
-        for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
+        for (int row = 0; row < (int)v1::SudokuSolver::Rows; row++) {
             std::vector<char> line;
-            for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
+            for (int col = 0; col < (int)v1::SudokuSolver::Cols; col++) {
                 line.push_back(test_board[DIFFICULTY_LEVEL][row * 9 + col]);
             }
             board.push_back(line);
