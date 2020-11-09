@@ -584,8 +584,12 @@ BackTracking_Entry:
             }
 
             this->recover(col);
-            state = StackState::BackTracking;
-            goto BackTracking_Entry;
+
+            if (stack.size() != 0) {
+                state = StackState::BackTracking;
+                goto BackTracking_Entry;
+            }
+            else break;
         } while (1);
 
         return false;
