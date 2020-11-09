@@ -15,26 +15,53 @@
 #define MATRIX_USE_STD_BITSET   1
 #define MATRIX_USE_BITMAP       0
 
-static const char test_board[2][81] = {
-    '5', '3', '.', '.', '7', '.', '.', '.', '.',
-    '6', '.', '.', '1', '9', '5', '.', '.', '.',
-    '.', '9', '8', '.', '.', '.', '.', '6', '.',
-    '8', '.', '.', '.', '6', '.', '.', '.', '3',
-    '4', '.', '.', '8', '.', '3', '.', '.', '1',
-    '7', '.', '.', '.', '2', '.', '.', '.', '6',
-    '.', '6', '.', '.', '.', '.', '2', '8', '.',
-    '.', '.', '.', '4', '1', '9', '.', '.', '5',
-    '.', '.', '.', '.', '8', '.', '.', '7', '9',
+#define DIFFICULTY_LEVEL        2
 
-    '4', '.', '2', '.', '.', '.', '9', '.', '.',
-    '.', '.', '.', '.', '6', '1', '.', '.', '.',
-    '.', '1', '9', '.', '.', '.', '.', '.', '.',
-    '7', '.', '5', '.', '.', '.', '6', '.', '.',
-    '2', '.', '4', '7', '.', '.', '.', '.', '5',
-    '.', '.', '.', '.', '9', '.', '7', '.', '.',
-    '.', '8', '.', '2', '.', '9', '.', '1', '.',
-    '.', '.', '7', '.', '.', '4', '.', '.', '.',
-    '.', '.', '.', '.', '.', '.', '.', '5', '2',
+static const char test_board[3][81] = {
+    // Normal
+    '5', '3', '.',  '.', '7', '.',  '.', '.', '.',
+    '6', '.', '.',  '1', '9', '5',  '.', '.', '.',
+    '.', '9', '8',  '.', '.', '.',  '.', '6', '.',
+
+    '8', '.', '.',  '.', '6', '.',  '.', '.', '3',
+    '4', '.', '.',  '8', '.', '3',  '.', '.', '1',
+    '7', '.', '.',  '.', '2', '.',  '.', '.', '6',
+
+    '.', '6', '.',  '.', '.', '.',  '2', '8', '.',
+    '.', '.', '.',  '4', '1', '9',  '.', '.', '5',
+    '.', '.', '.',  '.', '8', '.',  '.', '7', '9',
+
+    //
+    // Advance
+    // https://www.sudoku-cn.com/
+    //
+    '4', '.', '2',  '.', '.', '.',  '9', '.', '.',
+    '.', '.', '.',  '.', '6', '1',  '.', '.', '.',
+    '.', '1', '9',  '.', '.', '.',  '.', '.', '.',
+
+    '7', '.', '5',  '.', '.', '.',  '6', '.', '.',
+    '2', '.', '4',  '7', '.', '.',  '.', '.', '5',
+    '.', '.', '.',  '.', '9', '.',  '7', '.', '.',
+
+    '.', '8', '.',  '2', '.', '9',  '.', '1', '.',
+    '.', '.', '7',  '.', '.', '4',  '.', '.', '.',
+    '.', '.', '.',  '.', '.', '.',  '.', '5', '2',
+
+    //
+    // Hard
+    // http://www.cn.sudokupuzzle.org/play.php
+    //
+    '5', '.', '.',  '.', '.', '.',  '.', '.', '.',
+    '.', '1', '.',  '.', '.', '.',  '3', '2', '.',
+    '.', '.', '.',  '8', '4', '.',  '.', '.', '.',
+
+    '.', '.', '.',  '.', '.', '.',  '.', '.', '.',
+    '.', '.', '.',  '.', '.', '3',  '1', '.', '.',
+    '6', '.', '8',  '5', '.', '.',  '.', '.', '.',
+
+    '.', '.', '7',  '.', '.', '.',  '.', '6', '8',
+    '.', '3', '4',  '.', '.', '1',  '.', '.', '.',
+    '.', '.', '.',  '.', '.', '.',  '.', '.', '.'
 };
 
 namespace LeetCode {
@@ -360,10 +387,9 @@ private:
     };
 
     enum StackState {
-        Unknwon,
         SearchNext,
-        Retry,
         BackTracking,
+        BackTrackingRetry,
         Last
     };
 
@@ -494,63 +520,72 @@ public:
     }
 
     bool solve_non_recursive() {
-        int state = StackState::Unknwon;
+        int state = StackState::SearchNext;
         std::vector<StackInfo> stack;
         StackInfo stack_info;
-        int depth = 0;
         int i, col;
 
-        do {
-            if (this->is_empty()) {
-                return true;
-            }
-        
-            if (state != StackState::BackTracking && state != StackState::Retry) {
+        do {       
+            if (state == StackState::SearchNext) {
+Search_Next:
+                if (this->is_empty()) {
+                    return true;
+                }
+
                 col = get_min_column();
                 this->erase(col);
-            }
 
-            if (state != StackState::BackTracking) {
-                if (state != StackState::Retry) {
-                    state = StackState::Unknwon;
-                    i = link_list[col].down;
-                }
+                i = link_list[col].down;
+
                 while (i != col) {
-                    answer.push_back(link_list[i].row);
                     stack_info.set(col, i);
                     stack.push_back(stack_info);
+                    answer.push_back(link_list[i].row);
+
                     for (int j = link_list[i].next; j != i; j = link_list[j].next) {
                         this->erase(link_list[j].col);
                     }
 
-                    depth++;
-                    state = StackState::SearchNext;
-                    break;
+                    // SearchNext
+                    goto Search_Next;
                 }
-                if (state == StackState::SearchNext) {
-                    continue;
+            }
+            else if (state == StackState::BackTrackingRetry) {
+BackTracking_Retry:
+                while (i != col) {
+                    stack_info.set(col, i);
+                    stack.push_back(stack_info);
+                    answer.push_back(link_list[i].row);
+                    for (int j = link_list[i].next; j != i; j = link_list[j].next) {
+                        this->erase(link_list[j].col);
+                    }
+
+                    state = StackState::SearchNext;
+                    goto Search_Next;
                 }
             }
             else {
-                depth--;
+                // StackState::BackTracking
+BackTracking_Entry:
+                answer.pop_back();
                 stack_info = stack.back();
+                stack.pop_back();
                 i = stack_info.i;
                 col = stack_info.col;
 
                 for (int j = link_list[i].prev; j != i; j = link_list[j].prev) {
                     this->recover(link_list[j].col);
                 }
-                stack.pop_back();
-                answer.pop_back();
 
                 i = link_list[i].down;
 
-                state = StackState::Retry;
-                continue;
+                state = StackState::BackTrackingRetry;
+                goto BackTracking_Retry;
             }
 
             this->recover(col);
             state = StackState::BackTracking;
+            goto BackTracking_Entry;
         } while (1);
 
         return false;
@@ -575,8 +610,8 @@ public:
         SudokuSolver solver(board);
 
         DancingLinks dancingLinks(solver.getDlkMartix(), SudokuSolver::BoardSize * 4 + 1);
-        //dancingLinks.solve_non_recursive();
-        dancingLinks.solve();
+        dancingLinks.solve_non_recursive();
+        //dancingLinks.solve();
 
         sw.stop();
 
@@ -701,7 +736,7 @@ int main(int argn, char * argv[])
         for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
             std::vector<char> line;
             for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
-                line.push_back(test_board[1][row * 9 + col]);
+                line.push_back(test_board[DIFFICULTY_LEVEL][row * 9 + col]);
             }
             board.push_back(line);
         }
@@ -719,7 +754,7 @@ int main(int argn, char * argv[])
         for (int row = 0; row < v1::SudokuSolver::Rows; row++) {
             std::vector<char> line;
             for (int col = 0; col < v1::SudokuSolver::Cols; col++) {
-                line.push_back(test_board[1][row * 9 + col]);
+                line.push_back(test_board[DIFFICULTY_LEVEL][row * 9 + col]);
             }
             board.push_back(line);
         }
