@@ -321,10 +321,15 @@ private:
     }
 
 public:
-    void output_answer(std::vector<std::vector<char>> & board,
-                       const DancingLinks * dancingLinks);
+    void display_answer(std::vector<std::vector<char>> & board,
+                        const DancingLinks * dancingLinks);
 
-    static void display_board(const std::vector<std::vector<char>> & board, bool is_input = false) {
+    void display_answers(std::vector<std::vector<char>> & board,
+                         const DancingLinks * dancingLinks);
+
+    static void display_board(const std::vector<std::vector<char>> & board,
+                              bool is_input = false,
+                              int idx = -1) {
         int filled = 0;
         for (size_t row = 0; row < Rows; row++) {
             for (size_t col = 0; col < Cols; col++) {
@@ -338,7 +343,10 @@ public:
             printf("The input is: (filled = %d)\n", filled);
         }
         else {
-            printf("The answer is:\n");
+            if (idx == -1)
+                printf("The answer is:\n");
+            else
+                printf("The answer # %d is:\n", idx + 1);
         }
         printf("\n");
         for (size_t row = 0; row < Rows; row++) {
@@ -403,7 +411,8 @@ public:
 
     bool is_empty() const { return (link_list[0].next == 0); }
 
-    const std::vector<int> & get_answer() const { return this->answer; }
+    const std::vector<int> &              get_answer() const  { return this->answer; }
+    const std::vector<std::vector<int>> & get_answers() const { return this->answers; }
 
 private:
     void init(const typename SudokuSolver::matrix_type & matrix) {
@@ -495,7 +504,8 @@ public:
 
     bool solve() {
         if (this->is_empty()) {
-            return true;
+            this->answers.push_back(answer);
+            return false;
         }
         
         int col = get_min_column();
@@ -507,7 +517,7 @@ public:
             }
 
             if (solve()) {
-                return true;
+                //return true;
             }
 
             for (int j = link_list[i].prev; j != i; j = link_list[j].prev) {
@@ -529,7 +539,10 @@ public:
             if (state == StackState::SearchNext) {
 Search_Next:
                 if (this->is_empty()) {
-                    return true;
+                    this->answers.push_back(answer);
+                    //return true;
+                    state = StackState::BackTracking;
+                    goto BackTracking_Entry;
                 }
 
                 col = get_min_column();
@@ -596,10 +609,25 @@ BackTracking_Entry:
     }
 };
 
-void SudokuSolver::output_answer(std::vector<std::vector<char>> & board,
-                                 const DancingLinks * dancingLinks) {
+void SudokuSolver::display_answer(std::vector<std::vector<char>> & board,
+                                  const DancingLinks * dancingLinks) {
     for (auto idx : dancingLinks->get_answer()) {
         board[rows[idx]][cols[idx]] = (char)numbers[idx] + '1';
+    }
+
+    SudokuSolver::display_board(board);
+}
+
+void SudokuSolver::display_answers(std::vector<std::vector<char>> & board,
+                                   const DancingLinks * dancingLinks) {
+    printf("Total answers: %d\n\n", (int)dancingLinks->get_answers().size());
+    int i = 0;
+    for (auto answer : dancingLinks->get_answers()) {
+        for (auto idx : answer) {
+            board[rows[idx]][cols[idx]] = (char)numbers[idx] + '1';
+        }
+        SudokuSolver::display_board(board, false, i);
+        i++;
     }
 }
 
@@ -614,13 +642,12 @@ public:
         SudokuSolver solver(board);
 
         DancingLinks dancingLinks(solver.getDlkMartix(), SudokuSolver::BoardSize * 4 + 1);
-        dancingLinks.solve_non_recursive();
-        //dancingLinks.solve();
+        //dancingLinks.solve_non_recursive();
+        dancingLinks.solve();
 
         sw.stop();
 
-        solver.output_answer(board, &dancingLinks);
-        SudokuSolver::display_board(board);
+        solver.display_answers(board, &dancingLinks);
         printf("Elapsed time: %0.3f ms\n\n", sw.getElapsedMillisec());
     }
 };
