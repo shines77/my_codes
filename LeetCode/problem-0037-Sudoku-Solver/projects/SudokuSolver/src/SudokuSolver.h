@@ -23,7 +23,11 @@
 #define MATRIX_USE_BITMAP           2
 #define MATRIX_USE_BITSET           3
 
-#define MATRIX_BITSET_MODE          MATRIX_USE_SMALL_BITMAP
+#if defined(_MSC_VER)
+  #define MATRIX_BITSET_MODE        MATRIX_USE_SMALL_BITMAP
+#else
+  #define MATRIX_BITSET_MODE        MATRIX_USE_STD_BITSET
+#endif
 
 namespace LeetCode {
 namespace Problem_37 {
