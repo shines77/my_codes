@@ -7,16 +7,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\SudokuSolver.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\StopWatch.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\CPUWarmUp.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\StopWatch.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SudokuSolver.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SudokuSolver_v1.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SudokuSolver_v2.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Solution.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SudokuSolver_v1.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

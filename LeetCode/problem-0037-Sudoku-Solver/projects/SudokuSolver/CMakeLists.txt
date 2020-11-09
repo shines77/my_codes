@@ -50,7 +50,8 @@ include_directories(include)
 include_directories(src)
 
 set(SOURCE_FILES
-    src/SudokuSolver.cpp
+    src/SudokuSolver_v1.cpp
+    src/Solution.cpp
     )
 
 add_custom_target(release
