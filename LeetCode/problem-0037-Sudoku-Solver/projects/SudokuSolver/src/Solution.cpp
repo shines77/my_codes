@@ -19,7 +19,10 @@
 #define DIFFICULTY_LEVEL        2
 
 static const char test_board[3][81] = {
-    // Normal
+    //
+    // Normal (filled = 30)
+    // https://leetcode-cn.com/problems/sudoku-solver/
+    //
     '5', '3', '.',  '.', '7', '.',  '.', '.', '.',
     '6', '.', '.',  '1', '9', '5',  '.', '.', '.',
     '.', '9', '8',  '.', '.', '.',  '.', '6', '.',
@@ -33,7 +36,7 @@ static const char test_board[3][81] = {
     '.', '.', '.',  '.', '8', '.',  '.', '7', '9',
 
     //
-    // Advance
+    // Advance (filled = 24)
     // https://www.sudoku-cn.com/
     //
     '4', '.', '2',  '.', '.', '.',  '9', '.', '.',
@@ -49,7 +52,7 @@ static const char test_board[3][81] = {
     '.', '.', '.',  '.', '.', '.',  '.', '5', '2',
 
     //
-    // Hard
+    // Hard (filled = 17)
     // http://www.cn.sudokupuzzle.org/play.php
     //
     '5', '.', '.',  '.', '.', '.',  '.', '.', '.',
