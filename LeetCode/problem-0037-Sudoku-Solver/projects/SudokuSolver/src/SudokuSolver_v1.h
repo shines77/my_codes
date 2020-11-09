@@ -19,7 +19,7 @@
 #include "SudokuSolver.h"
 
 namespace LeetCode {
-namespace Problem_0037 {
+namespace Problem_37 {
 namespace v1 {
 
 class DancingLinks;
@@ -76,7 +76,7 @@ private:
                     m = n = board[row][col] - '1';
                 }
                 for (size_t number = m; number <= n; number++) {
-#if MATRIX_USE_BITMAP
+#if (MATRIX_BITSET_MODE == MATRIX_USE_SMALL_BITMAP) || (MATRIX_BITSET_MODE == MATRIX_USE_BITMAP)
                     matrix[index].set(81 * 0 + row * 9 + col);
                     matrix[index].set(81 * 1 + row * 9 + number);
                     matrix[index].set(81 * 2 + col * 9 + number);

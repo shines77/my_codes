@@ -6,7 +6,7 @@
 
 #include "StopWatch.h"
 
-using namespace LeetCode::Problem_0037::v1;
+using namespace LeetCode::Problem_37::v1;
 
 void SudokuSolver::display_answer(std::vector<std::vector<char>> & board,
                                   const DancingLinks * dancingLinks) {

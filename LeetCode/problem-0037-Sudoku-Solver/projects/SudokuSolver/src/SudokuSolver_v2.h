@@ -20,7 +20,7 @@
 #include "StopWatch.h"
 
 namespace LeetCode {
-namespace Problem_0037 {
+namespace Problem_37 {
 namespace v2 {
 
 class Solution {

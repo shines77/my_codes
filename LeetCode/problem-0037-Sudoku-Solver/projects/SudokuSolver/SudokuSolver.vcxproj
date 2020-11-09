@@ -24,6 +24,7 @@
     <ClInclude Include="src\SudokuSolver.h" />
     <ClInclude Include="src\SudokuSolver_v1.h" />
     <ClInclude Include="src\SudokuSolver_v2.h" />
+    <ClInclude Include="src\SudokuSolver_v3.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Solution.cpp" />

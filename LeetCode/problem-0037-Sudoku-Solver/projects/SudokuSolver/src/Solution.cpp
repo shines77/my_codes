@@ -13,6 +13,7 @@
 
 #include "SudokuSolver_v1.h"
 #include "SudokuSolver_v2.h"
+#include "SudokuSolver_v3.h"
 
 #include "CPUWarmUp.h"
 
@@ -70,19 +71,19 @@ static const char test_board[3][81] = {
 
 int main(int argn, char * argv[])
 {
-    using namespace LeetCode::Problem_0037;
+    using namespace LeetCode::Problem_37;
 
     jtest::CPU::warmup(1000);
 
     {
         printf("--------------------------------\n\n");
-        printf("Sudoku: Dancing Links\n\n");
+        printf("Sudoku: v1::Solution - Dancing Links\n\n");
 
-        // Test case 2
+        // Test case
         std::vector<std::vector<char>> board;
-        for (int row = 0; row < (int)v1::SudokuSolver::Rows; row++) {
+        for (size_t row = 0; row < SudokuHelper::Rows; row++) {
             std::vector<char> line;
-            for (int col = 0; col < (int)v1::SudokuSolver::Cols; col++) {
+            for (size_t col = 0; col < SudokuHelper::Cols; col++) {
                 line.push_back(test_board[DIFFICULTY_LEVEL][row * 9 + col]);
             }
             board.push_back(line);
@@ -94,13 +95,13 @@ int main(int argn, char * argv[])
 
     {
         printf("--------------------------------\n\n");
-        printf("Sudoku: Depth first search\n\n");
+        printf("Sudoku: v2::Solution - Depth first search\n\n");
 
-        // Test case 2
+        // Test case
         std::vector<std::vector<char>> board;
-        for (int row = 0; row < (int)v1::SudokuSolver::Rows; row++) {
+        for (size_t row = 0; row < SudokuHelper::Rows; row++) {
             std::vector<char> line;
-            for (int col = 0; col < (int)v1::SudokuSolver::Cols; col++) {
+            for (size_t col = 0; col < SudokuHelper::Cols; col++) {
                 line.push_back(test_board[DIFFICULTY_LEVEL][row * 9 + col]);
             }
             board.push_back(line);
@@ -109,6 +110,26 @@ int main(int argn, char * argv[])
         v2::Solution solution;
         solution.solveSudoku(board);
     }
+
+#if 1
+    {
+        printf("--------------------------------\n\n");
+        printf("Sudoku: v3::Solution - Depth first search\n\n");
+
+        // Test case
+        std::vector<std::vector<char>> board;
+        for (size_t row = 0; row < SudokuHelper::Rows; row++) {
+            std::vector<char> line;
+            for (size_t col = 0; col < SudokuHelper::Cols; col++) {
+                line.push_back(test_board[DIFFICULTY_LEVEL][row * 9 + col]);
+            }
+            board.push_back(line);
+        }
+
+        v3::Solution solution;
+        solution.solveSudoku(board);
+    }
+#endif
 
 #if !defined(NDEBUG) && defined(_MSC_VER)
     ::system("pause");

@@ -16,70 +16,168 @@
 #include <cstdint>
 #include <cstddef>
 #include <bitset>
+#include <type_traits>
 
-#define MATRIX_USE_STD_BITSET   1
-#define MATRIX_USE_BITMAP       0
+#define MATRIX_USE_STD_BITSET       0
+#define MATRIX_USE_SMALL_BITMAP     1
+#define MATRIX_USE_BITMAP           2
+#define MATRIX_USE_BITSET           3
+
+#define MATRIX_BITSET_MODE          MATRIX_USE_SMALL_BITMAP
 
 namespace LeetCode {
-namespace Problem_0037 {
+namespace Problem_37 {
+
+template <size_t Bits>
+class SmallBitMap {
+public:
+    typedef typename std::conditional<(Bits <= sizeof(uint32_t)), uint32_t, size_t>::type  unit_type;
+
+    static const size_t kUnitBits = 8 * sizeof(unit_type);
+    static const size_t kUnits = (Bits + kUnitBits - 1) / kUnitBits;
+    static const size_t kBytes = kUnits * kUnitBits;
+
+private:
+    unit_type bits_[kUnits];
+
+public:
+    SmallBitMap() = default;
+    ~SmallBitMap() = default;
+
+    size_t size() const        { return Bits; }
+
+          char * data()        { return (char *)      bits_; }
+    const char * data() const  { return (const char *)bits_; }
+
+    size_t bytes() const { return kBytes; }
+    size_t units() const { return kUnits; }
+    size_t unit_length() const { return sizeof(unit_type); }
+
+    void clear() {
+        ::memset(this->bits_, 0, kUnits * sizeof(unit_type));
+    }
+
+    bool test(size_t pos) const {
+        assert(pos < Bits);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        return ((this->bits_[index] & unit_type(size_t(1) << shift)) != 0);
+    }
+
+    size_t value(size_t pos) const {
+        assert(pos < Bits);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        return (this->bits_[index] & unit_type(size_t(1) << shift));
+    }
+
+    void set(size_t pos) {
+        assert(pos < Bits);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        this->bits_[index] |= unit_type(size_t(1) << shift);
+    }
+
+    void set(size_t pos, bool value) {
+        if (value)
+            this->set(pos);
+        else
+            this->reset(pos);
+    }
+
+    void reset(size_t pos) {
+        assert(pos < Bits);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        this->bits_[index] &= unit_type(~(size_t(1) << shift));
+    }
+
+    void flip(size_t pos) {
+        assert(pos < Bits);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        this->bits_[index] ^= unit_type(~(size_t(1) << shift));
+    }
+};
 
 template <size_t Bits>
 class BitMap {
 public:
-    static const size_t kAlignmentBits = sizeof(size_t) * 8;
-    static const size_t kBytes = ((Bits + kAlignmentBits - 1) / kAlignmentBits) * kAlignmentBits;
+    typedef typename std::conditional<(Bits <= sizeof(uint32_t)), uint32_t, size_t>::type  unit_type;
+
+    static const size_t kUnitBits = 8 * sizeof(unit_type);
+    static const size_t kUnits = (Bits + kUnitBits - 1) / kUnitBits;
+    static const size_t kBytes = kUnits * kUnitBits;
 
 private:
-    size_t * bits_;
+    unit_type * bits_;
 
 public:
     BitMap() : bits_(nullptr) {
-        bits_ = new size_t[kBytes];
+        this->bits_ = new unit_type[kUnits];
     }
     ~BitMap() {
-        if (bits_ != nullptr) {
-            delete[] bits_;
-            bits_ = nullptr;
+        if (this->bits_ != nullptr) {
+            delete[] this->bits_;
+            this->bits_ = nullptr;
         }
     }
 
-    size_t bits() const  { return Bits; }
+    size_t size() const        { return Bits; }
+
+          char * data()        { return (char *)      bits_; }
+    const char * data() const  { return (const char *)bits_; }
+
     size_t bytes() const { return kBytes; }
-    size_t size() const  { return Bits; }
-    void * data() const  { return (void *)bits_; }
+    size_t units() const { return kUnits; }
+    size_t unit_length() const { return sizeof(unit_type); }
 
     void clear() {
-        if (bits_) {
-            ::memset(bits_, 0, kBytes * sizeof(size_t));
+        if (this->bits_) {
+            ::memset(this->bits_, 0, kUnits * sizeof(unit_type));
         }
     }
 
     bool test(size_t pos) const {
         assert(pos < Bits);
-        size_t index = pos / kAlignmentBits;
-        size_t shift = pos % kAlignmentBits;
-        return ((bits_[index] & (1ULL << shift)) != 0);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        return ((this->bits_[index] & unit_type(size_t(1) << shift)) != 0);
     }
 
     size_t value(size_t pos) const {
         assert(pos < Bits);
-        size_t index = pos / kAlignmentBits;
-        size_t shift = pos % kAlignmentBits;
-        return (bits_[index] & (1ULL << shift));
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        return (this->bits_[index] & unit_type(size_t(1) << shift));
     }
 
     void set(size_t pos) {
         assert(pos < Bits);
-        size_t index = pos / kAlignmentBits;
-        size_t shift = pos % kAlignmentBits;
-        bits_[index] |= (1ULL << shift);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        this->bits_[index] |= unit_type(size_t(1) << shift);
+    }
+
+    void set(size_t pos, bool value) {
+        if (value)
+            this->set(pos);
+        else
+            this->reset(pos);
     }
 
     void reset(size_t pos) {
         assert(pos < Bits);
-        size_t index = pos / kAlignmentBits;
-        size_t shift = pos % kAlignmentBits;
-        bits_[index] &= ~(1ULL << shift);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        this->bits_[index] &= unit_type(~(size_t(1) << shift));
+    }
+
+    void flip(size_t pos) {
+        assert(pos < Bits);
+        size_t index = pos / kUnitBits;
+        size_t shift = pos % kUnitBits;
+        this->bits_[index] ^= unit_type(~(size_t(1) << shift));
     }
 };
 
@@ -148,12 +246,14 @@ public:
 template <size_t Rows, size_t Cols>
 class BitMartix {
 private:
-#if MATRIX_USE_STD_BITSET
-    typedef std::bitset<Cols>    bitmap_type;
-#elif MATRIX_USE_BITMAP
-    typedef BitMap<Cols>    bitmap_type;
+#if (MATRIX_BITSET_MODE == MATRIX_USE_SMALL_BITMAP)
+    typedef SmallBitMap<Cols>   bitmap_type;
+#elif (MATRIX_BITSET_MODE == MATRIX_USE_BITMAP)
+    typedef BitMap<Cols>        bitmap_type;
+#elif (MATRIX_BITSET_MODE == MATRIX_USE_BITSET)
+    typedef BitSet<Cols>        bitmap_type;
 #else
-    typedef BitSet<Cols>    bitmap_type;
+    typedef std::bitset<Cols>   bitmap_type;
 #endif
     bitmap_type data_[Rows];
     size_t rows_;
@@ -173,7 +273,7 @@ public:
     }
 
     void clear() {
-#if (MATRIX_USE_STD_BITSET == 0)
+#if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
         for (size_t row = 0; row < Rows; row++) {
             data_[row].clear();
         }
