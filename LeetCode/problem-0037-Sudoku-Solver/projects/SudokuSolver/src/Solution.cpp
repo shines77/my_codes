@@ -77,6 +77,7 @@ int main(int argn, char * argv[])
     {
         printf("--------------------------------\n\n");
         printf("Sudoku: Dancing Links\n\n");
+
         // Test case 2
         std::vector<std::vector<char>> board;
         for (int row = 0; row < (int)v1::SudokuSolver::Rows; row++) {
