@@ -75,6 +75,7 @@ private:
                 if (board[row][col] != '.') {
                     m = n = board[row][col] - '1';
                 }
+                size_t palace = row / 3 * 3 + col / 3;
                 for (size_t number = m; number <= n; number++) {
 #if (MATRIX_BITSET_MODE == MATRIX_USE_SMALL_BITMAP) || (MATRIX_BITSET_MODE == MATRIX_USE_BITMAP)
                     matrix[index].set(81 * 0 + row * 9 + col);
@@ -85,7 +86,7 @@ private:
                     matrix[index][81 * 0 + row * 9 + col] = 1;
                     matrix[index][81 * 1 + row * 9 + number] = 1;
                     matrix[index][81 * 2 + col * 9 + number] = 1;
-                    matrix[index][81 * 3 + (row / 3 * 3 + col / 3) * 9 + number] = 1;
+                    matrix[index][81 * 3 + palace * 9 + number] = 1;
 #endif
                     rows[index + 1] = row;
                     cols[index + 1] = col;
@@ -189,15 +190,15 @@ public:
         link_list[free_idx].row = row;
         link_list[free_idx].col = col;
 
-#if 0
-        link_list[link_list[free_idx].prev].next = free_idx;
-        link_list[link_list[free_idx].next].prev = free_idx;
-        link_list[link_list[free_idx].up].down = free_idx;
-        link_list[link_list[free_idx].down].up = free_idx;
-#else
+#if 1
         link_list[tail].next = free_idx;
         link_list[head].prev = free_idx;
         link_list[col].down = free_idx;
+        link_list[link_list[free_idx].down].up = free_idx;
+#else
+        link_list[link_list[free_idx].prev].next = free_idx;
+        link_list[link_list[free_idx].next].prev = free_idx;
+        link_list[link_list[free_idx].up].down = free_idx;
         link_list[link_list[free_idx].down].up = free_idx;
 #endif
         col_size[col]++;
@@ -243,7 +244,7 @@ public:
     bool solve() {
         if (this->is_empty()) {
             this->answers.push_back(answer);
-            return false;
+            return true;
         }
         
         int col = get_min_column();

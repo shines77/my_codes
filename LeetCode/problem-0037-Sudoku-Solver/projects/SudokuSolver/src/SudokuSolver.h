@@ -24,7 +24,7 @@
 #define MATRIX_USE_BITSET           3
 
 #if defined(_MSC_VER)
-  #define MATRIX_BITSET_MODE        MATRIX_USE_SMALL_BITMAP
+  #define MATRIX_BITSET_MODE        MATRIX_USE_STD_BITSET
 #else
   #define MATRIX_BITSET_MODE        MATRIX_USE_STD_BITSET
 #endif
@@ -35,7 +35,7 @@ namespace Problem_37 {
 template <size_t Bits>
 class SmallBitMap {
 public:
-    typedef typename std::conditional<(Bits <= sizeof(uint32_t)), uint32_t, size_t>::type  unit_type;
+    typedef typename std::conditional<(Bits <= sizeof(uint32_t) * 8), uint32_t, size_t>::type  unit_type;
 
     static const size_t kUnitBits = 8 * sizeof(unit_type);
     static const size_t kUnits = (Bits + kUnitBits - 1) / kUnitBits;
@@ -75,6 +75,12 @@ public:
         return (this->bits_[index] & unit_type(size_t(1) << shift));
     }
 
+    void set() {
+        for (size_t i = 0; i < kUnits; i++) {
+            this->bits_[i] = unit_type(-1);
+        }
+    }
+
     void set(size_t pos) {
         assert(pos < Bits);
         size_t index = pos / kUnitBits;
@@ -89,11 +95,23 @@ public:
             this->reset(pos);
     }
 
+    void reset() {
+        for (size_t i = 0; i < kUnits; i++) {
+            this->bits_[i] = 0;
+        }
+    }
+
     void reset(size_t pos) {
         assert(pos < Bits);
         size_t index = pos / kUnitBits;
         size_t shift = pos % kUnitBits;
         this->bits_[index] &= unit_type(~(size_t(1) << shift));
+    }
+
+    void flip() {
+        for (size_t i = 0; i < kUnits; i++) {
+            this->bits_[i] ^= unit_type(-1);
+        }
     }
 
     void flip(size_t pos) {
@@ -102,12 +120,16 @@ public:
         size_t shift = pos % kUnitBits;
         this->bits_[index] ^= unit_type(~(size_t(1) << shift));
     }
+
+    void trim() {
+		this->bits_[kUnits - 1] &= unit_type(size_t(1) << (Bits % kUnitBits)) - 1;
+    }
 };
 
 template <size_t Bits>
 class BitMap {
 public:
-    typedef typename std::conditional<(Bits <= sizeof(uint32_t)), uint32_t, size_t>::type  unit_type;
+    typedef typename std::conditional<(Bits <= sizeof(uint32_t) * 8), uint32_t, size_t>::type  unit_type;
 
     static const size_t kUnitBits = 8 * sizeof(unit_type);
     static const size_t kUnits = (Bits + kUnitBits - 1) / kUnitBits;
@@ -156,6 +178,12 @@ public:
         return (this->bits_[index] & unit_type(size_t(1) << shift));
     }
 
+    void set() {
+        for (size_t i = 0; i < kUnits; i++) {
+            this->bits_[i] = unit_type(-1);
+        }
+    }
+
     void set(size_t pos) {
         assert(pos < Bits);
         size_t index = pos / kUnitBits;
@@ -170,6 +198,12 @@ public:
             this->reset(pos);
     }
 
+    void reset() {
+        for (size_t i = 0; i < kUnits; i++) {
+            this->bits_[i] = 0;
+        }
+    }
+
     void reset(size_t pos) {
         assert(pos < Bits);
         size_t index = pos / kUnitBits;
@@ -177,11 +211,21 @@ public:
         this->bits_[index] &= unit_type(~(size_t(1) << shift));
     }
 
+    void flip() {
+        for (size_t i = 0; i < kUnits; i++) {
+            this->bits_[i] ^= unit_type(-1);
+        }
+    }
+
     void flip(size_t pos) {
         assert(pos < Bits);
         size_t index = pos / kUnitBits;
         size_t shift = pos % kUnitBits;
         this->bits_[index] ^= unit_type(~(size_t(1) << shift));
+    }
+
+    void trim() {
+		this->bits_[kUnits - 1] &= unit_type(size_t(1) << (Bits % kUnitBits)) - 1;
     }
 };
 
@@ -196,54 +240,90 @@ private:
 
 public:
     BitSet() : bytes_(nullptr) {
-        bytes_ = new uint8_t[kBytes];
+        this->bytes_ = new uint8_t[kBytes];
     }
     ~BitSet() {
-        if (bytes_ != nullptr) {
-            delete[] bytes_;
-            bytes_ = nullptr;
+        if (this->bytes_ != nullptr) {
+            delete[] this->bytes_;
+            this->bytes_ = nullptr;
         }
     }
 
-    size_t bits() const  { return Bits; }
+    size_t size() const        { return Bits; }
+
+          char * data()        { return (      char *)bytes_; }
+    const char * data() const  { return (const char *)bytes_; }
+
     size_t bytes() const { return kBytes; }
-    size_t size() const  { return Bits; }
-    void * data() const  { return (void *)bytes_; }
 
     void clear() {
-        if (bytes_) {
-            ::memset(bytes_, 0, kBytes * sizeof(uint8_t));
+        if (this->bytes_) {
+            ::memset(this->bytes_, 0, kBytes * sizeof(uint8_t));
         }
     }
 
     bool test(size_t pos) const {
         assert(pos < Bits);
-        return (bytes_[pos] != 0);
+        return (this->bytes_[pos] != 0);
     }
 
     uint8_t value(size_t pos) const {
         assert(pos < Bits);
-        return bytes_[pos];
+        return this->bytes_[pos];
+    }
+
+    void set() {
+        for (size_t i = 0; i < kBytes; i++) {
+            this->bytes_[i] = uint8_t(-1);
+        }
     }
 
     void set(size_t pos) {
         assert(pos < Bits);
-        bytes_[pos] = 1;
+        this->bytes_[pos] = uint8_t(-1);
+    }
+
+    void set(size_t pos, bool value) {
+        if (value)
+            this->set(pos);
+        else
+            this->reset(pos);
+    }
+
+    void reset() {
+        for (size_t i = 0; i < kBytes; i++) {
+            this->bytes_[i] = 0;
+        }
     }
 
     void reset(size_t pos) {
         assert(pos < Bits);
-        bytes_[pos] = 0;
+        this->bytes_[pos] = 0;
+    }
+
+    void flip() {
+        for (size_t i = 0; i < kBytes; i++) {
+            this->bytes_[i] ^= uint8_t(-1);
+        }
+    }
+
+    void flip(size_t pos) {
+        assert(pos < Bits);
+        this->bytes_[pos] ^= uint8_t(-1);
+    }
+
+    void trim() {
+		/* Not support */
     }
 
     uint8_t & operator [] (size_t pos) {
         assert(pos < Bits);
-        return bytes_[pos];
+        return this->bytes_[pos];
     }
 
-    uint8_t operator [] (size_t pos) const {
+    const uint8_t operator [] (size_t pos) const {
         assert(pos < Bits);
-        return bytes_[pos];
+        return this->bytes_[pos];
     }
 };
 
@@ -266,42 +346,71 @@ public:
     BitMartix() : rows_(Rows) {}
     ~BitMartix() {}
 
-    size_t rows() const { return rows_; }
+    size_t rows() const { return this->rows_; }
     size_t cols() const { return Cols; }
 
     size_t size() const { return Rows; }
     size_t total_size() const { return (Rows * Cols); }
 
     void setRows(size_t rows) {
-        rows_ = rows;
+        this->rows_ = rows;
     }
 
     void clear() {
 #if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
         for (size_t row = 0; row < Rows; row++) {
-            data_[row].clear();
+            this->data_[row].clear();
         }
 #endif
     }
 
     bool test(size_t row, size_t col) {
         assert(row < Rows);
-        return data_[row].test(col);
+        return this->data_[row].test(col);
     }
 
     size_t value(size_t row, size_t col) {
         assert(row < Rows);
-        return data_[row].value(col);
+        return this->data_[row].value(col);
+    }
+
+    void set() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->data_[row].set();
+#if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
+            this->data_[row].trim();
+#endif
+        }
+    }
+
+    void reset() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->data_[row].reset();
+        }
+    }
+
+    void flip() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->data_[row].flip();
+        }
+    }
+
+    void trim() {
+#if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
+        for (size_t row = 0; row < Rows; row++) {
+            this->data_[row].trim();
+        }
+#endif
     }
 
     bitmap_type & operator [] (size_t pos) {
         assert(pos < Rows);
-        return data_[pos];
+        return this->data_[pos];
     }
 
     const bitmap_type & operator [] (size_t pos) const {
         assert(pos < Rows);
-        return data_[pos];
+        return this->data_[pos];
     }
 };
 
