@@ -61,10 +61,10 @@ public:
                         minUsable = numUsable;
                         min_row = row;
                         min_col = col;
-                        if (numUsable == 1) {
+                        if (numUsable <= 1) {
                             out_row = min_row;
                             out_col = min_col;
-                            return true;
+                            return (numUsable == 1);
                         }
                     }
                 }
