@@ -33,7 +33,7 @@ private:
     BitMartix<9, 9>  rows;
     BitMartix<9, 9>  cols;
     BitMartix<9, 9>  used;
-    BitMartix<9, 9>  filled;
+    //BitMartix<9, 9>  filled;
     BitMartix<81, 9> usable;
 
 public:
@@ -63,11 +63,13 @@ public:
                             return false;
                         }
 #endif
+#if 1
                         if (numUsable == 1) {
                             out_row = row;
                             out_col = col;
                             return true;
                         }
+#endif
                         minUsable = numUsable;
                         min_row = row;
                         min_col = col;
