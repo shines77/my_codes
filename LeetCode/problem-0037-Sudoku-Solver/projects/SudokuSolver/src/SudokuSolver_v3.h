@@ -58,18 +58,14 @@ public:
                 if (board[row][col] == '.') {
                     size_t numUsable = this->usable[row * 9 + col].count();
                     if (numUsable < minUsable) {
-#if 1
                         if (numUsable == 0) {
                             return false;
                         }
-#endif
-#if 1
-                        if (numUsable == 1) {
+                        else if (numUsable == 1) {
                             out_row = row;
                             out_col = col;
                             return true;
                         }
-#endif
                         minUsable = numUsable;
                         min_row = row;
                         min_col = col;
