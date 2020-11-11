@@ -17,7 +17,7 @@
 
 #include "CPUWarmUp.h"
 
-#define DIFFICULTY_LEVEL        2
+#define DIFFICULTY_LEVEL        1
 
 static const char test_board[3][81] = {
     //
@@ -75,6 +75,7 @@ int main(int argn, char * argv[])
 
     jtest::CPU::warmup(1000);
 
+#ifdef NDEBUG
     {
         printf("--------------------------------\n\n");
         printf("Sudoku: v1::Solution - Dancing Links\n\n");
@@ -110,6 +111,7 @@ int main(int argn, char * argv[])
         v2::Solution solution;
         solution.solveSudoku(board);
     }
+#endif
 
 #if 1
     {
