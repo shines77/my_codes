@@ -58,14 +58,19 @@ public:
                 if (board[row][col] == '.') {
                     size_t numUsable = this->usable[row * 9 + col].count();
                     if (numUsable < minUsable) {
+#if 1
+                        if (numUsable == 0) {
+                            return false;
+                        }
+#endif
+                        if (numUsable == 1) {
+                            out_row = row;
+                            out_col = col;
+                            return true;
+                        }
                         minUsable = numUsable;
                         min_row = row;
                         min_col = col;
-                        if (numUsable <= 1) {
-                            out_row = min_row;
-                            out_col = min_col;
-                            return (numUsable == 1);
-                        }
                     }
                 }
             }
@@ -90,8 +95,40 @@ public:
         return ~(this->rows[row] | this->cols[col] | this->used[palace]);
     }
 
+    void updateUsable(size_t row, size_t col, size_t num) {
+        size_t cell_y = row * 9;
+        for (size_t x = 0; x < Cols; x++) {
+            if (x != col) {
+                this->usable[cell_y + x].reset(num);
+            }
+        }
+
+        size_t cell_x = col;
+        for (size_t y = 0; y < Rows; y++) {
+            if (y != row) {
+                this->usable[y * 9 + cell_x].reset(num);
+            }
+        }
+
+        size_t palace_row = row / 3 * 3;
+        size_t palace_col = col / 3;
+        size_t palace = palace_row + palace_col;
+        size_t cell = cell_y + cell_x;
+        palace_col *= 3;
+        size_t pos = palace_row * 9 + palace_col;
+        for (size_t y = 0; y < (Rows / 3); y++) {
+            for (size_t x = 0; x < (Cols / 3); x++) {
+                if (pos != cell) {
+                    this->usable[pos].reset(num);
+                }
+                pos++;
+            }
+            pos += (9 - 3);
+        }
+    }
+
     template <bool isUndo = false>
-    void updateUsable(size_t row, size_t col) {
+    void updateUndoUsable(size_t row, size_t col) {
         size_t cell_y = row * 9;
         size_t palace_row = row / 3 * 3;
         for (size_t x = 0; x < Cols; x++) {
@@ -143,7 +180,8 @@ public:
         this->used[palace].set(num);
         //this->filled[palace].set(pos);
         //this->usable[row * 9 + col].reset();
-        updateUsable<false>(row, col);
+        updateUsable(row, col, num);
+        //updateUndoUsable<false>(row, col);
     }
 
     void undoFillNum(size_t row, size_t col, size_t num) {
@@ -153,7 +191,7 @@ public:
         this->cols[col].reset(num);
         this->used[palace].reset(num);
         //this->filled[palace].reset(pos);
-        updateUsable<true>(row, col);
+        updateUndoUsable<true>(row, col);
     }
 
     bool solve(std::vector<std::vector<char>> & board, size_t empties) {
