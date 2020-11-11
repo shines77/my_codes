@@ -17,7 +17,7 @@
 
 #include "CPUWarmUp.h"
 
-#define DIFFICULTY_LEVEL        1
+#define DIFFICULTY_LEVEL        2
 
 static const char test_board[3][81] = {
     //

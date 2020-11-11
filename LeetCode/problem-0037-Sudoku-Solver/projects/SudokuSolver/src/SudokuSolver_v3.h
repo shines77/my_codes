@@ -125,6 +125,16 @@ public:
         }
     }
 
+    void fillNum(size_t row, size_t col, size_t num) {
+        size_t palace = row / 3 * 3 + col / 3;
+        size_t pos = (row % 3) * 3 + (col % 3);
+        this->rows[row].set(num);
+        this->cols[col].set(num);
+        this->used[palace].set(num);
+        //this->filled[palace].set(pos);
+        //this->usable[row * 9 + col].reset();
+    }
+
     void doFillNum(size_t row, size_t col, size_t num) {
         size_t palace = row / 3 * 3 + col / 3;
         size_t pos = (row % 3) * 3 + (col % 3);
@@ -187,7 +197,7 @@ public:
                 char val = line[col];
                 if (val != '.') {
                     size_t num = val - '1';
-                    doFillNum(row, col, num);
+                    fillNum(row, col, num);
                 }
                 else {
                     empties++;
@@ -198,10 +208,9 @@ public:
         for (size_t row = 0; row < board.size(); row++) {
             const std::vector<char> & line = board[row];
             for (size_t col = 0; col < line.size(); col++) {
-                size_t palace = row / 3 * 3 + col / 3;
                 char val = line[col];
                 if (val == '.') {
-                    this->usable[row * 9 + col] = ~(this->rows[row] | this->cols[col] | this->used[palace]);
+                    this->usable[row * 9 + col] = getUsable(row, col);
                 }
             }
         }
