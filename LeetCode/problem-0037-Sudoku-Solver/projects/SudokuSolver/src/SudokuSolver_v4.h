@@ -1,6 +1,6 @@
 
-#ifndef LEETCODE_SUDOKU_SOLVER_V3_H
-#define LEETCODE_SUDOKU_SOLVER_V3_H
+#ifndef LEETCODE_SUDOKU_SOLVER_V4_H
+#define LEETCODE_SUDOKU_SOLVER_V4_H
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <vector>
+#include <list>
 #include <bitset>
 
 #include "SudokuSolver.h"
@@ -21,13 +22,24 @@
 
 namespace LeetCode {
 namespace Problem_37 {
-namespace v3 {
+namespace v4 {
 
 class Solution {
 public:
     static const size_t Rows = SudokuHelper::Rows;
     static const size_t Cols = SudokuHelper::Cols;
     static const size_t Numbers = SudokuHelper::Numbers;
+
+    struct Position {
+        size_t row;
+        size_t col;
+
+        Position() = default;
+        Position(size_t row, size_t col) : row(row), col(col) {};
+        ~Position() = default;
+    };
+
+    typedef typename std::list<Position>::const_iterator cmove_iterator;
 
 private:
     BitMartix<9, 9>  rows;
@@ -44,41 +56,31 @@ public:
 
     ~Solution() = default;
 
-    bool getNextFillCell(const std::vector<std::vector<char>> & board,
-                         size_t & out_row, size_t & out_col) {
+    bool getNextFillCell(std::list<Position> & valid_moves,
+                         cmove_iterator & out_iter) {
+        assert(valid_moves.size() > 0);
         size_t minUsable = size_t(-1);
-        size_t min_row, min_col;
-        for (size_t row = 0; row < board.size(); row++) {
-            const std::vector<char> & line = board[row];
-            for (size_t col = 0; col < line.size(); col++) {
-                // Only search empty cell
-                if (board[row][col] == '.') {
-                    size_t numUsable = this->usable[row * 9 + col].count();
-                    if (numUsable < minUsable) {
-                        if (numUsable == 0) {
-                            return false;
-                        }
-                        else if (numUsable == 1) {
-                            out_row = row;
-                            out_col = col;
-                            return true;
-                        }
-                        minUsable = numUsable;
-                        min_row = row;
-                        min_col = col;
-                    }
+        cmove_iterator min_iter;
+        for (cmove_iterator iter = valid_moves.cbegin();
+             iter != valid_moves.cend(); ++iter) {
+            size_t row = iter->row;
+            size_t col = iter->col;
+            size_t numUsable = this->usable[row * 9 + col].count();
+            if (numUsable < minUsable) {
+                if (numUsable == 0) {
+                    return false;
                 }
+                else if (numUsable == 1) {
+                    out_iter = iter;
+                    return true;
+                }
+                minUsable = numUsable;
+                min_iter = iter;
             }
         }
 
-        if (minUsable != size_t(-1)) {
-            out_row = min_row;
-            out_col = min_col;
-            return true;
-        }
-        else {
-            return false;
-        }
+        out_iter = min_iter;
+        return true;
     }
 
     std::bitset<9> getUsable(size_t row, size_t col) {
@@ -179,14 +181,18 @@ public:
         updateUndoUsable<true>(row, col);
     }
 
-    bool solve(std::vector<std::vector<char>> & board, size_t empties) {
-        if (empties == 0) {
+    bool solve(std::vector<std::vector<char>> & board,
+               std::list<Position> & valid_moves) {
+        if (valid_moves.size() == 0) {
             return true;
         }
 
-        size_t row, col;
-        bool hasMoves = getNextFillCell(board, row, col);
+        cmove_iterator moveIter;
+        bool hasMoves = getNextFillCell(valid_moves, moveIter);
         if (hasMoves) {
+            size_t row = moveIter->row;
+            size_t col = moveIter->col;
+            valid_moves.erase(moveIter);
             const std::bitset<9> & fillNums = this->usable[row * 9 + col];
             for (size_t num = 0; num < fillNums.size(); num++) {
                 // Get usable numbers
@@ -194,7 +200,7 @@ public:
                     doFillNum(row, col, num);
                     board[row][col] = (char)(num + '1');
 
-                    if (solve(board, empties - 1)) {
+                    if (solve(board, valid_moves)) {
                         return true;
                     }
 
@@ -202,6 +208,7 @@ public:
                     undoFillNum(row, col, num);
                 }
             }
+            valid_moves.emplace_front(row, col);
         }
 
         return false;
@@ -213,7 +220,7 @@ public:
         jtest::StopWatch sw;
         sw.start();
 
-        size_t empties = 0;
+        std::list<Position> valid_moves;
         for (size_t row = 0; row < board.size(); row++) {
             const std::vector<char> & line = board[row];
             for (size_t col = 0; col < line.size(); col++) {
@@ -223,7 +230,7 @@ public:
                     fillNum(row, col, num);
                 }
                 else {
-                    empties++;
+                    valid_moves.emplace_back(row, col);
                 }
             }   
         }
@@ -238,7 +245,7 @@ public:
             }
         }
 
-        this->solve(board, empties);
+        this->solve(board, valid_moves);
 
         sw.stop();
 
@@ -247,8 +254,8 @@ public:
     }
 };
 
-} // namespace v3
+} // namespace v4
 } // namespace Problem_0037
 } // namespace LeetCode
 
-#endif // LEETCODE_SUDOKU_SOLVER_V3_H
+#endif // LEETCODE_SUDOKU_SOLVER_V4_H

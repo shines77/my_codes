@@ -1,6 +1,6 @@
 
-#ifndef LEETCODE_SUDOKU_SOLVER_V3_H
-#define LEETCODE_SUDOKU_SOLVER_V3_H
+#ifndef LEETCODE_SUDOKU_SOLVER_V5_H
+#define LEETCODE_SUDOKU_SOLVER_V5_H
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <vector>
+#include <list>
 #include <bitset>
 
 #include "SudokuSolver.h"
@@ -21,7 +22,119 @@
 
 namespace LeetCode {
 namespace Problem_37 {
-namespace v3 {
+namespace v5 {
+
+template <typename T, size_t Capacity>
+class SmallFixedDualList {
+public:
+    typedef T                               value_type;
+    typedef SmallFixedDualList<T, Capacity> this_type;
+
+    struct Node {
+        int        prev;
+        int        next;
+        value_type value;
+
+        Node() : prev(prev), next(next) {
+        }
+        Node(const Node & src) = default;
+        ~Node() = default;
+    };
+
+    typedef Node node_type;
+
+    static const size_t kCapacity = Capacity + 1;
+
+private:
+    size_t           size_;
+    size_t           capacity_;
+    node_type        data_[kCapacity];
+
+public:
+    SmallFixedDualList() : size_(1), capacity_(1) {
+        this->init();
+    }
+    ~SmallFixedDualList() {}
+
+    int begin() const { return this->data_[0].next; }
+    int end() const   { return -1; }
+
+    int next(int index) const {
+        return this->data_[index].next;
+    }
+
+    size_t size() const { return this->size_; }
+    size_t capacity() const { return this->capacity_; }
+    size_t max_capacity() const { return this_type::kCapacity; }
+
+    void init() {
+#if 1
+        this->data_[0].prev = -1;
+        this->data_[0].next = 1;
+#else
+        for (int i = 0; i < this_type::kCapacity; i++) {
+            this->data_[i].prev = i - 1;
+            this->data_[i].next = i + 1;
+        }
+        //this->data_[0].prev = -1;
+        this->data_[this_type::kCapacity - 1].next = -1;
+#endif
+    }
+
+    void finalize() {
+        this->capacity_ = this->size_ + 1;
+        this->data_[this->size_ - 1].next = -1;
+    }
+
+    template <typename ... Args>
+    void insert(int index, Args && ... args) {
+        assert(index < this->capacity());
+        assert(this->size_ < this->capacity());
+        assert(this->size_ < this->max_capacity());
+        this->data_[index].prev = index - 1;
+        this->data_[index].next = index + 1;
+        new (&(this->data_[index].value)) value_type(std::forward<Args>(args)...);
+        this->size_++;
+    }
+
+    void remove(int index) {
+        assert(index < this->capacity());
+        assert(this->size_ < this->capacity());
+        assert(this->size_ < this->max_capacity());
+        node_type & node = this->data_[index];
+        this->data_[node.prev].next = node.next;
+        this->data_[node.next].prev = node.prev;
+        assert(this->size_ > 0);
+        this->size_--;
+    }
+
+    void push_front(int index) {
+        assert(index < this->capacity());
+        assert(this->size_ < this->capacity());
+        assert(this->size_ < this->max_capacity());
+        this->data_[index].prev = 0;
+        this->data_[index].next = this->data_[0].next;
+        this->data_[this->data_[0].next].prev = index;
+        this->data_[0].next = index;
+        this->size_++;
+    }
+
+    void restore(int index) {
+        assert(index < this->capacity());
+        assert(this->size_ < this->capacity());
+        assert(this->size_ < this->max_capacity());
+        node_type & node = this->data_[index];
+        this->data_[node.next].prev = index;
+        this->data_[node.prev].next = index;
+        this->size_++;
+    }
+
+    const value_type & operator [] (int index) const {
+        assert(index < this->capacity());
+        assert(index < this->max_capacity());
+        return this->data_[index].value;
+    };
+};
 
 class Solution {
 public:
@@ -29,11 +142,24 @@ public:
     static const size_t Cols = SudokuHelper::Cols;
     static const size_t Numbers = SudokuHelper::Numbers;
 
+    struct Position {
+        size_t row;
+        size_t col;
+
+        Position() = default;
+        Position(size_t row, size_t col) : row(row), col(col) {};
+        ~Position() = default;
+    };
+
+    typedef typename std::list<Position>::const_iterator cmove_iterator;
+
 private:
     BitMartix<9, 9>  rows;
     BitMartix<9, 9>  cols;
     BitMartix<9, 9>  palaces;
     BitMartix<81, 9> usable;
+
+    SmallFixedDualList<Position, 81> valid_moves;
 
 public:
     Solution() {
@@ -44,41 +170,28 @@ public:
 
     ~Solution() = default;
 
-    bool getNextFillCell(const std::vector<std::vector<char>> & board,
-                         size_t & out_row, size_t & out_col) {
+    int getNextFillCell(SmallFixedDualList<Position, 81> & valid_moves) {
+        assert(valid_moves.size() > 1);
         size_t minUsable = size_t(-1);
-        size_t min_row, min_col;
-        for (size_t row = 0; row < board.size(); row++) {
-            const std::vector<char> & line = board[row];
-            for (size_t col = 0; col < line.size(); col++) {
-                // Only search empty cell
-                if (board[row][col] == '.') {
-                    size_t numUsable = this->usable[row * 9 + col].count();
-                    if (numUsable < minUsable) {
-                        if (numUsable == 0) {
-                            return false;
-                        }
-                        else if (numUsable == 1) {
-                            out_row = row;
-                            out_col = col;
-                            return true;
-                        }
-                        minUsable = numUsable;
-                        min_row = row;
-                        min_col = col;
-                    }
+        int min_index = -1;
+        for (int index = valid_moves.begin();
+             index != valid_moves.end(); index = valid_moves.next(index)) {
+            size_t row = valid_moves[index].row;
+            size_t col = valid_moves[index].col;
+            size_t numUsable = this->usable[row * 9 + col].count();
+            if (numUsable < minUsable) {
+                if (numUsable == 0) {
+                    return -1;
                 }
+                else if (numUsable == 1) {
+                    return index;
+                }
+                minUsable = numUsable;
+                min_index = index;
             }
         }
 
-        if (minUsable != size_t(-1)) {
-            out_row = min_row;
-            out_col = min_col;
-            return true;
-        }
-        else {
-            return false;
-        }
+        return min_index;
     }
 
     std::bitset<9> getUsable(size_t row, size_t col) {
@@ -179,14 +292,17 @@ public:
         updateUndoUsable<true>(row, col);
     }
 
-    bool solve(std::vector<std::vector<char>> & board, size_t empties) {
-        if (empties == 0) {
+    bool solve(std::vector<std::vector<char>> & board,
+               SmallFixedDualList<Position, 81> & valid_moves) {
+        if (valid_moves.size() == 1) {
             return true;
         }
 
-        size_t row, col;
-        bool hasMoves = getNextFillCell(board, row, col);
-        if (hasMoves) {
+        int move_idx = getNextFillCell(valid_moves);
+        if (move_idx >= 0) {
+            size_t row = valid_moves[move_idx].row;
+            size_t col = valid_moves[move_idx].col;
+            valid_moves.remove(move_idx);
             const std::bitset<9> & fillNums = this->usable[row * 9 + col];
             for (size_t num = 0; num < fillNums.size(); num++) {
                 // Get usable numbers
@@ -194,7 +310,7 @@ public:
                     doFillNum(row, col, num);
                     board[row][col] = (char)(num + '1');
 
-                    if (solve(board, empties - 1)) {
+                    if (solve(board, valid_moves)) {
                         return true;
                     }
 
@@ -202,6 +318,7 @@ public:
                     undoFillNum(row, col, num);
                 }
             }
+            valid_moves.push_front(move_idx);
         }
 
         return false;
@@ -213,7 +330,8 @@ public:
         jtest::StopWatch sw;
         sw.start();
 
-        size_t empties = 0;
+        int index = 1;
+        SmallFixedDualList<Position, 81> valid_moves;
         for (size_t row = 0; row < board.size(); row++) {
             const std::vector<char> & line = board[row];
             for (size_t col = 0; col < line.size(); col++) {
@@ -223,10 +341,12 @@ public:
                     fillNum(row, col, num);
                 }
                 else {
-                    empties++;
+                    valid_moves.insert(index, row, col);
+                    index++;
                 }
             }   
         }
+        valid_moves.finalize();
 
         for (size_t row = 0; row < board.size(); row++) {
             const std::vector<char> & line = board[row];
@@ -238,7 +358,7 @@ public:
             }
         }
 
-        this->solve(board, empties);
+        this->solve(board, valid_moves);
 
         sw.stop();
 
@@ -247,8 +367,8 @@ public:
     }
 };
 
-} // namespace v3
+} // namespace v5
 } // namespace Problem_0037
 } // namespace LeetCode
 
-#endif // LEETCODE_SUDOKU_SOLVER_V3_H
+#endif // LEETCODE_SUDOKU_SOLVER_V5_H
