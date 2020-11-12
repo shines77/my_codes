@@ -53,6 +53,11 @@ private:
     size_t           capacity_;
     node_type        data_[kCapacity];
 
+    void init() {
+        this->data_[0].prev = -1;
+        this->data_[0].next = 1;
+    }
+
 public:
     SmallFixedDualList() : size_(1), capacity_(1) {
         this->init();
@@ -70,18 +75,12 @@ public:
     size_t capacity() const { return this->capacity_; }
     size_t max_capacity() const { return this_type::kCapacity; }
 
-    void init() {
-#if 1
-        this->data_[0].prev = -1;
-        this->data_[0].next = 1;
-#else
+    void init_all() {
         for (int i = 0; i < this_type::kCapacity; i++) {
             this->data_[i].prev = i - 1;
             this->data_[i].next = i + 1;
         }
-        //this->data_[0].prev = -1;
         this->data_[this_type::kCapacity - 1].next = -1;
-#endif
     }
 
     void finalize() {

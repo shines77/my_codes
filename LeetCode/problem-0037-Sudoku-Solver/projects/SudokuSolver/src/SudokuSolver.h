@@ -441,18 +441,24 @@ struct SudokuHelper {
                 printf("The answer # %d is:\n", idx + 1);
         }
         printf("\n");
+        printf("  ------- ------- -------\n");
         for (size_t row = 0; row < Rows; row++) {
-            printf("  ");
+            printf(" | ");
             for (size_t col = 0; col < Cols; col++) {
-                char num = board[row][col];
-                if (num == '.')
-                    num = '0';
+                char val = board[row][col];
+                if (val == ' ' || val == '-')
+                    val = '.';
                 if (col < Cols - 1)
-                    printf("%c, ", num);
+                    printf("%c ", val);
                 else
-                    printf("%c", num);
+                    printf("%c ", val);
+                if ((col % 3) == 2)
+                    printf("| ");
             }
             printf("\n");
+            if ((row % 3) == 2) {
+                printf("  ------- ------- -------\n");
+            }
         }
         printf("\n");
     }

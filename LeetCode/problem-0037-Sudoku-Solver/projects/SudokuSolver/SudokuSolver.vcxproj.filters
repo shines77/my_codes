@@ -31,12 +31,18 @@
     <ClInclude Include="src\SudokuSolver_v5.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\ice_sudoku_solver.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Solution.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\SudokuSolver_v1.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ice_sudoku_solver.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
