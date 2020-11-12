@@ -89,8 +89,7 @@ public:
 
     template <typename ... Args>
     void insert(int index, Args && ... args) {
-        assert(index < this->capacity());
-        assert(this->size_ < this->capacity());
+        assert(index < this->max_capacity());
         assert(this->size_ < this->max_capacity());
         this->data_[index].prev = index - 1;
         this->data_[index].next = index + 1;
