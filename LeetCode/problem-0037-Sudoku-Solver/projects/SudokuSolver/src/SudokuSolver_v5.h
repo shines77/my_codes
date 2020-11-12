@@ -35,7 +35,8 @@ public:
         int        next;
         value_type value;
 
-        Node() : prev(prev), next(next) {
+        Node() = default;
+        Node(int prev, int next) : prev(prev), next(next) {
         }
         Node(const Node & src) = default;
         ~Node() = default;
