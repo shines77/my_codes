@@ -20,6 +20,8 @@
 #include "SudokuSolver.h"
 #include "StopWatch.h"
 
+#define V4_SEARCH_ALL_STAGE     0
+
 namespace LeetCode {
 namespace Problem_37 {
 namespace v4 {
@@ -46,6 +48,10 @@ private:
     BitMartix<9, 9>  cols;
     BitMartix<9, 9>  palaces;
     BitMartix<81, 9> usable;
+
+#if V4_SEARCH_ALL_STAGE
+    std::vector<std::vector<std::vector<char>>> answers;
+#endif
 
 public:
     Solution() {
@@ -184,6 +190,9 @@ public:
     bool solve(std::vector<std::vector<char>> & board,
                std::list<Position> & valid_moves) {
         if (valid_moves.size() == 0) {
+#if V4_SEARCH_ALL_STAGE
+            this->answers.push_back(board);
+#endif
             return true;
         }
 
@@ -201,7 +210,9 @@ public:
                     board[row][col] = (char)(num + '1');
 
                     if (solve(board, valid_moves)) {
+#if (V4_SEARCH_ALL_STAGE == 0)
                         return true;
+#endif
                     }
 
                     board[row][col] = '.';
@@ -249,7 +260,11 @@ public:
 
         sw.stop();
 
+#if V4_SEARCH_ALL_STAGE
+        SudokuHelper::display_answers(this->answers);
+#else
         SudokuHelper::display_board(board);
+#endif
         printf("Elapsed time: %0.3f ms\n\n", sw.getElapsedMillisec());
     }
 };

@@ -18,6 +18,8 @@
 
 #include "SudokuSolver.h"
 
+#define V1_SEARCH_ALL_STAGE     0
+
 namespace LeetCode {
 namespace Problem_37 {
 namespace v1 {
@@ -117,8 +119,9 @@ private:
     std::vector<int>    col_size;
     int                 free_idx;
     std::vector<int>    answer;
-    std::vector<std::vector<int>>
-                        answers;
+#if V1_SEARCH_ALL_STAGE
+    std::vector<std::vector<int>> answers;
+#endif
 
     struct StackInfo {
         int col;
@@ -151,7 +154,9 @@ public:
     bool is_empty() const { return (link_list[0].next == 0); }
 
     const std::vector<int> &              get_answer() const  { return this->answer; }
+#if V1_SEARCH_ALL_STAGE
     const std::vector<std::vector<int>> & get_answers() const { return this->answers; }
+#endif
 
 private:
     void init(const typename SudokuSolver::matrix_type & matrix) {
@@ -243,7 +248,9 @@ public:
 
     bool solve() {
         if (this->is_empty()) {
+#if V1_SEARCH_ALL_STAGE
             this->answers.push_back(answer);
+#endif
             return true;
         }
         
@@ -256,7 +263,9 @@ public:
             }
 
             if (solve()) {
-                //return true;
+#if (V1_SEARCH_ALL_STAGE == 0)
+                return true;
+#endif
             }
 
             for (int j = link_list[i].prev; j != i; j = link_list[j].prev) {
@@ -278,10 +287,13 @@ public:
             if (state == StackState::SearchNext) {
 Search_Next:
                 if (this->is_empty()) {
+#if V1_SEARCH_ALL_STAGE
                     this->answers.push_back(answer);
-                    //return true;
                     state = StackState::BackTracking;
                     goto BackTracking_Entry;
+#else
+                    return true;
+#endif
                 }
 
                 col = get_min_column();

@@ -20,6 +20,8 @@
 #include "SudokuSolver.h"
 #include "StopWatch.h"
 
+#define V5_SEARCH_ALL_STAGE     0
+
 namespace LeetCode {
 namespace Problem_37 {
 namespace v5 {
@@ -151,15 +153,15 @@ public:
         ~Position() = default;
     };
 
-    typedef typename std::list<Position>::const_iterator cmove_iterator;
-
 private:
     BitMartix<9, 9>  rows;
     BitMartix<9, 9>  cols;
     BitMartix<9, 9>  palaces;
     BitMartix<81, 9> usable;
 
-    SmallFixedDualList<Position, 81> valid_moves;
+#if V5_SEARCH_ALL_STAGE
+    std::vector<std::vector<std::vector<char>>> answers;
+#endif
 
 public:
     Solution() {
@@ -295,6 +297,9 @@ public:
     bool solve(std::vector<std::vector<char>> & board,
                SmallFixedDualList<Position, 81> & valid_moves) {
         if (valid_moves.size() == 1) {
+#if V5_SEARCH_ALL_STAGE
+            this->answers.push_back(board);
+#endif
             return true;
         }
 
@@ -311,7 +316,9 @@ public:
                     board[row][col] = (char)(num + '1');
 
                     if (solve(board, valid_moves)) {
+#if (V5_SEARCH_ALL_STAGE == 0)
                         return true;
+#endif
                     }
 
                     board[row][col] = '.';
@@ -362,7 +369,11 @@ public:
 
         sw.stop();
 
+#if V5_SEARCH_ALL_STAGE
+        SudokuHelper::display_answers(this->answers);
+#else
         SudokuHelper::display_board(board);
+#endif
         printf("Elapsed time: %0.3f ms\n\n", sw.getElapsedMillisec());
     }
 };

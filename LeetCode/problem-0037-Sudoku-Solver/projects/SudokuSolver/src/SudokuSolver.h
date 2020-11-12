@@ -456,6 +456,15 @@ struct SudokuHelper {
         }
         printf("\n");
     }
+
+    static void display_answers(std::vector<std::vector<std::vector<char>>> & answers) {
+        printf("Total answers: %d\n\n", (int)answers.size());
+        int i = 0;
+        for (auto answer : answers) {
+            SudokuHelper::display_board(answer, false, i);
+            i++;
+        }
+    }
 };
 
 } // namespace Problem_0037
