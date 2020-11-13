@@ -16,13 +16,14 @@
 #include "SudokuSolver_v3.h"
 #include "SudokuSolver_v4.h"
 #include "SudokuSolver_v5.h"
+#include "SudokuSolver_v6.h"
 
 #include "ice_sudoku_solver.h"
 
 #include "CPUWarmUp.h"
 
 // Level: [0 - 4]
-#define DIFFICULTY_LEVEL        4
+#define DIFFICULTY_LEVEL        2
 
 static const char test_board[5][81] = {
     //
@@ -236,6 +237,24 @@ int main(int argc, char * argv[])
     }
 
     if (1)
+    {
+        printf("--------------------------------\n\n");
+        printf("Sudoku: v6::Solution - Depth first search\n\n");
+
+        std::vector<std::vector<char>> board;
+        for (size_t row = 0; row < SudokuHelper::Rows; row++) {
+            std::vector<char> line;
+            for (size_t col = 0; col < SudokuHelper::Cols; col++) {
+                line.push_back(test_board[DIFFICULTY_LEVEL][row * 9 + col]);
+            }
+            board.push_back(line);
+        }
+
+        v6::Solution solution;
+        solution.solveSudoku(board);
+    }
+
+    if (0)
     {
         printf("--------------------------------\n\n");
         printf("Sudoku: ice suduku\n\n");

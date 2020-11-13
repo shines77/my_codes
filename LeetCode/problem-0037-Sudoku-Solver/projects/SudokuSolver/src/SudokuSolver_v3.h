@@ -30,18 +30,13 @@ public:
     static const size_t Numbers = SudokuHelper::Numbers;
 
 private:
-    BitMartix<9, 9>  rows;
-    BitMartix<9, 9>  cols;
-    BitMartix<9, 9>  palaces;
-    BitMartix<81, 9> usable;
+    BitMatrix2<9, 9>  rows;
+    BitMatrix2<9, 9>  cols;
+    BitMatrix2<9, 9>  palaces;
+    BitMatrix2<81, 9> usable;
 
 public:
-    Solution() {
-        this->rows.clear();
-        this->cols.clear();
-        this->palaces.clear();
-    }
-
+    Solution() = default;
     ~Solution() = default;
 
     bool getNextFillCell(const std::vector<std::vector<char>> & board,
@@ -248,7 +243,7 @@ public:
 };
 
 } // namespace v3
-} // namespace Problem_0037
+} // namespace Problem_37
 } // namespace LeetCode
 
 #endif // LEETCODE_SUDOKU_SOLVER_V3_H

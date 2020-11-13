@@ -44,22 +44,17 @@ public:
     typedef typename std::list<Position>::const_iterator cmove_iterator;
 
 private:
-    BitMartix<9, 9>  rows;
-    BitMartix<9, 9>  cols;
-    BitMartix<9, 9>  palaces;
-    BitMartix<81, 9> usable;
+    BitMatrix2<9, 9>  rows;
+    BitMatrix2<9, 9>  cols;
+    BitMatrix2<9, 9>  palaces;
+    BitMatrix2<81, 9> usable;
 
 #if V4_SEARCH_ALL_STAGE
     std::vector<std::vector<std::vector<char>>> answers;
 #endif
 
 public:
-    Solution() {
-        this->rows.clear();
-        this->cols.clear();
-        this->palaces.clear();
-    }
-
+    Solution() = default;
     ~Solution() = default;
 
     bool getNextFillCell(std::list<Position> & valid_moves,
@@ -270,7 +265,7 @@ public:
 };
 
 } // namespace v4
-} // namespace Problem_0037
+} // namespace Problem_37
 } // namespace LeetCode
 
 #endif // LEETCODE_SUDOKU_SOLVER_V4_H

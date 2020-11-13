@@ -328,7 +328,7 @@ public:
 };
 
 template <size_t Rows, size_t Cols>
-class BitMartix {
+class BitMatrix {
 private:
 #if (MATRIX_BITSET_MODE == MATRIX_USE_SMALL_BITMAP)
     typedef SmallBitMap<Cols>   bitmap_type;
@@ -339,12 +339,12 @@ private:
 #else
     typedef std::bitset<Cols>   bitmap_type;
 #endif
-    bitmap_type data_[Rows];
     size_t rows_;
+    bitmap_type data_[Rows];
 
 public:
-    BitMartix() : rows_(Rows) {}
-    ~BitMartix() {}
+    BitMatrix() : rows_(Rows) {}
+    ~BitMatrix() {}
 
     size_t rows() const { return this->rows_; }
     size_t cols() const { return Cols; }
@@ -371,7 +371,11 @@ public:
 
     size_t value(size_t row, size_t col) {
         assert(row < Rows);
+#if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
         return this->data_[row].value(col);
+#else
+        return (size_t)(this->data_[row].test(col));
+#endif
     }
 
     void set() {
@@ -411,6 +415,110 @@ public:
     const bitmap_type & operator [] (size_t pos) const {
         assert(pos < Rows);
         return this->data_[pos];
+    }
+};
+
+template <size_t Rows, size_t Cols>
+class BitMatrix2 {
+private:
+    typedef std::bitset<Cols>   bitset_type;
+
+    bitset_type data_[Rows];
+
+public:
+    BitMatrix2() = default;
+    ~BitMatrix2() = default;
+
+    size_t rows() const { return Rows; }
+    size_t cols() const { return Cols; }
+
+    size_t size() const { return Rows; }
+    size_t total_size() const { return (Rows * Cols); }
+
+    bool test(size_t row, size_t col) {
+        assert(row < Rows);
+        return this->data_[row].test(col);
+    }
+
+    void set() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->data_[row].set();
+        }
+    }
+
+    void reset() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->data_[row].reset();
+        }
+    }
+
+    void flip() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->data_[row].flip();
+        }
+    }
+
+    bitset_type & operator [] (size_t pos) {
+        assert(pos < Rows);
+        return this->data_[pos];
+    }
+
+    const bitset_type & operator [] (size_t pos) const {
+        assert(pos < Rows);
+        return this->data_[pos];
+    }
+};
+
+template <size_t ZDepths, size_t Rows, size_t Cols>
+class BitMatrix3 {
+private:
+    typedef BitMatrix2<Rows, Cols>  matrix_type;
+
+    matrix_type matrix_[ZDepths];
+
+public:
+    BitMatrix3() = default;
+    ~BitMatrix3() = default;
+
+    size_t zdepths() const { return ZDepths; }
+    size_t rows() const { return Rows; }
+    size_t cols() const { return Cols; }
+
+    size_t size() const { return ZDepths; }
+    size_t matrix2d_size() const { return (Rows * Cols); }
+    size_t total_size() const { return (ZDepths * Rows * Cols); }
+
+    bool test(size_t z_depth, size_t row, size_t col) {
+        assert(z_depth < ZDepths);
+        return this->matrix_[z_depth][row].test(col);
+    }
+
+    void set() {
+        for (size_t z_depth = 0; z_depth < ZDepths; z_depth++) {
+            this->matrix_[z_depth].set();
+        }
+    }
+
+    void reset() {
+        for (size_t z_depth = 0; z_depth < ZDepths; z_depth++) {
+            this->matrix_[z_depth].reset();
+        }
+    }
+
+    void flip() {
+        for (size_t z_depth = 0; z_depth < ZDepths; z_depth++) {
+            this->matrix_[z_depth].flip();
+        }
+    }
+
+    matrix_type & operator [] (size_t pos) {
+        assert(pos < ZDepths);
+        return this->matrix_[pos];
+    }
+
+    const matrix_type & operator [] (size_t pos) const {
+        assert(pos < ZDepths);
+        return this->matrix_[pos];
     }
 };
 
@@ -473,7 +581,7 @@ struct SudokuHelper {
     }
 };
 
-} // namespace Problem_0037
+} // namespace Problem_37
 } // namespace LeetCode
 
 #endif // LEETCODE_SUDOKU_SOLVER_H

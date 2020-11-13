@@ -1,6 +1,6 @@
 
-#ifndef LEETCODE_SUDOKU_SOLVER_V5_H
-#define LEETCODE_SUDOKU_SOLVER_V5_H
+#ifndef LEETCODE_SUDOKU_SOLVER_V6_H
+#define LEETCODE_SUDOKU_SOLVER_V6_H
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
@@ -20,11 +20,11 @@
 #include "SudokuSolver.h"
 #include "StopWatch.h"
 
-#define V5_SEARCH_ALL_STAGE     0
+#define V6_SEARCH_ALL_STAGE     0
 
 namespace LeetCode {
 namespace Problem_37 {
-namespace v5 {
+namespace v6 {
 
 template <typename T, size_t Capacity>
 class SmallFixedDualList {
@@ -153,12 +153,16 @@ public:
     };
 
 private:
-    BitMatrix2<9, 9>  rows;
-    BitMatrix2<9, 9>  cols;
-    BitMatrix2<9, 9>  palaces;
-    BitMatrix2<81, 9> usable;
+    BitMatrix2<9, 9>     rows;
+    BitMatrix2<9, 9>     cols;
+    BitMatrix2<9, 9>     palaces;
+    BitMatrix2<81, 9>    usable;
 
-#if V5_SEARCH_ALL_STAGE
+    BitMatrix3<9, 9, 3>  palace_rows;
+    BitMatrix3<9, 9, 3>  palace_cols;
+    BitMatrix3<9, 9, 9>  palace_num_pos;
+
+#if V6_SEARCH_ALL_STAGE
     std::vector<std::vector<std::vector<char>>> answers;
 #endif
 
@@ -291,7 +295,7 @@ public:
     bool solve(std::vector<std::vector<char>> & board,
                SmallFixedDualList<Position, 81> & valid_moves) {
         if (valid_moves.size() == 1) {
-#if V5_SEARCH_ALL_STAGE
+#if V6_SEARCH_ALL_STAGE
             this->answers.push_back(board);
 #endif
             return true;
@@ -310,7 +314,7 @@ public:
                     board[row][col] = (char)(num + '1');
 
                     if (solve(board, valid_moves)) {
-#if (V5_SEARCH_ALL_STAGE == 0)
+#if (V6_SEARCH_ALL_STAGE == 0)
                         return true;
 #endif
                     }
@@ -363,7 +367,7 @@ public:
 
         sw.stop();
 
-#if V5_SEARCH_ALL_STAGE
+#if V6_SEARCH_ALL_STAGE
         SudokuHelper::display_answers(this->answers);
 #else
         SudokuHelper::display_board(board);
@@ -372,8 +376,8 @@ public:
     }
 };
 
-} // namespace v5
-} // namespace Problem_37
+} // namespace v6
+} // namespace Problem_0037
 } // namespace LeetCode
 
-#endif // LEETCODE_SUDOKU_SOLVER_V5_H
+#endif // LEETCODE_SUDOKU_SOLVER_V6_H

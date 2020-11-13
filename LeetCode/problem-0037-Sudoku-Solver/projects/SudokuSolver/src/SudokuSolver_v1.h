@@ -34,7 +34,7 @@ public:
 
     static const size_t BoardSize = Rows * Cols * Numbers;
 
-    typedef BitMartix<BoardSize, Rows * Cols * 4> matrix_type;
+    typedef BitMatrix<BoardSize, Rows * Cols * 4> matrix_type;
 
 private:
     matrix_type matrix;
@@ -366,7 +366,7 @@ public:
 };
 
 } // namespace v1
-} // namespace Problem_0037
+} // namespace Problem_37
 } // namespace LeetCode
 
 #endif // LEETCODE_SUDOKU_SOLVER_V1_H

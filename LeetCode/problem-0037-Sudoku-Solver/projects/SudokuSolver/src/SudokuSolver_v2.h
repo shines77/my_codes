@@ -113,7 +113,7 @@ private:
 };
 
 } // namespace v2
-} // namespace Problem_0037
+} // namespace Problem_37
 } // namespace LeetCode
 
 #endif // LEETCODE_SUDOKU_SOLVER_V1_H
