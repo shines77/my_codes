@@ -340,7 +340,7 @@ private:
     typedef std::bitset<Cols>   bitmap_type;
 #endif
     size_t rows_;
-    bitmap_type data_[Rows];
+    bitmap_type array_[Rows];
 
 public:
     BitMatrix() : rows_(Rows) {}
@@ -359,62 +359,62 @@ public:
     void clear() {
 #if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
         for (size_t row = 0; row < Rows; row++) {
-            this->data_[row].clear();
+            this->array_[row].clear();
         }
 #endif
     }
 
     bool test(size_t row, size_t col) {
         assert(row < Rows);
-        return this->data_[row].test(col);
+        return this->array_[row].test(col);
     }
 
     size_t value(size_t row, size_t col) {
         assert(row < Rows);
 #if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
-        return this->data_[row].value(col);
+        return this->array_[row].value(col);
 #else
-        return (size_t)(this->data_[row].test(col));
+        return (size_t)(this->array_[row].test(col));
 #endif
     }
 
     void set() {
         for (size_t row = 0; row < Rows; row++) {
-            this->data_[row].set();
+            this->array_[row].set();
 #if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
-            this->data_[row].trim();
+            this->array_[row].trim();
 #endif
         }
     }
 
     void reset() {
         for (size_t row = 0; row < Rows; row++) {
-            this->data_[row].reset();
+            this->array_[row].reset();
         }
     }
 
     void flip() {
         for (size_t row = 0; row < Rows; row++) {
-            this->data_[row].flip();
+            this->array_[row].flip();
         }
     }
 
     void trim() {
 #if (MATRIX_BITSET_MODE != MATRIX_USE_STD_BITSET)
         for (size_t row = 0; row < Rows; row++) {
-            this->data_[row].trim();
+            this->array_[row].trim();
         }
 #endif
     }
 
     bitmap_type & operator [] (size_t pos) {
         assert(pos < Rows);
-        return this->data_[pos];
+        return this->array_[pos];
     }
 
     const bitmap_type & operator [] (size_t pos) const {
         assert(pos < Rows);
-        return this->data_[pos];
+        return this->array_[pos];
     }
 };
 
@@ -423,7 +423,7 @@ class BitMatrix2 {
 private:
     typedef std::bitset<Cols>   bitset_type;
 
-    bitset_type data_[Rows];
+    bitset_type array_[Rows];
 
 public:
     BitMatrix2() = default;
@@ -437,35 +437,35 @@ public:
 
     bool test(size_t row, size_t col) {
         assert(row < Rows);
-        return this->data_[row].test(col);
+        return this->array_[row].test(col);
     }
 
     void set() {
         for (size_t row = 0; row < Rows; row++) {
-            this->data_[row].set();
+            this->array_[row].set();
         }
     }
 
     void reset() {
         for (size_t row = 0; row < Rows; row++) {
-            this->data_[row].reset();
+            this->array_[row].reset();
         }
     }
 
     void flip() {
         for (size_t row = 0; row < Rows; row++) {
-            this->data_[row].flip();
+            this->array_[row].flip();
         }
     }
 
     bitset_type & operator [] (size_t pos) {
         assert(pos < Rows);
-        return this->data_[pos];
+        return this->array_[pos];
     }
 
     const bitset_type & operator [] (size_t pos) const {
         assert(pos < Rows);
-        return this->data_[pos];
+        return this->array_[pos];
     }
 };
 

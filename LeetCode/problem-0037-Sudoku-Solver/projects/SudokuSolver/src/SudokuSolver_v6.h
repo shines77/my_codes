@@ -156,18 +156,20 @@ private:
     BitMatrix2<9, 9>     rows;
     BitMatrix2<9, 9>     cols;
     BitMatrix2<9, 9>     palaces;
+    BitMatrix2<9, 9>     palace_filled;
     BitMatrix2<81, 9>    usable;
 
     BitMatrix3<9, 9, 3>  palace_rows;
     BitMatrix3<9, 9, 3>  palace_cols;
-    BitMatrix3<9, 9, 9>  palace_num_pos;
+    BitMatrix3<9, 9, 9>  palace_nums;
 
 #if V6_SEARCH_ALL_STAGE
     std::vector<std::vector<std::vector<char>>> answers;
 #endif
 
 public:
-    Solution() = default;
+    Solution() {
+    }
     ~Solution() = default;
 
     int getNextFillCell(SmallFixedDualList<Position, 81> & valid_moves) {
@@ -274,6 +276,8 @@ public:
         this->rows[row].set(num);
         this->cols[col].set(num);
         this->palaces[palace].set(num);
+        size_t palace_pos = (row % 3) * 3 + (col % 3);
+        this->palace_filled[palace].set(palace_pos);
     }
 
     void doFillNum(size_t row, size_t col, size_t num) {
@@ -343,7 +347,7 @@ public:
                 char val = line[col];
                 if (val != '.') {
                     size_t num = val - '1';
-                    fillNum(row, col, num);
+                    this->fillNum(row, col, num);
                 }
                 else {
                     valid_moves.insert(index, row, col);
@@ -358,7 +362,25 @@ public:
             for (size_t col = 0; col < line.size(); col++) {
                 char val = line[col];
                 if (val == '.') {
-                    this->usable[row * 9 + col] = getUsable(row, col);
+                    // Get usable numbers per position.
+                    size_t palace = row / 3 * 3 + col / 3;
+                    std::bitset<9> numsUsable = getUsable(row, col, palace);
+                    this->usable[row * 9 + col] = numsUsable;
+
+                    // Get usable positions per number in the same palace.
+                    size_t palace_row = (row % 3);
+                    size_t palace_col = (col % 3);
+                    size_t palace_pos = palace_row * 3 + palace_col;
+                    for (size_t num = 0; num < SudokuHelper::Numbers; num++) {
+                        if (!this->palaces[palace].test(num)) {
+                            bool isUsable = numsUsable.test(num);
+                            if (isUsable) {
+                                this->palace_rows[palace][num] |= size_t(1) << (palace_row);
+                                this->palace_cols[palace][num] |= size_t(1) << (palace_col);
+                                this->palace_nums[palace][num].set(palace_pos);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -373,6 +395,29 @@ public:
         SudokuHelper::display_board(board);
 #endif
         printf("Elapsed time: %0.3f ms\n\n", sw.getElapsedMillisec());
+
+#if 0
+                            this->palace_rows[palace][num].set();
+                            this->palace_cols[palace][num].set();
+                            size_t palace_row_base = row / 3 * 3;
+                            size_t palace_col_base = col / 3;
+                            for (size_t idx = 0; idx < 3; idx++) {
+                                size_t palace_row_id = palace_row_base + idx;
+                                if (idx != (col / 3)) {
+                                    this->palace_rows[palace_row_id][num].set(row % 3) = !this->rows[row].test(num);
+                                }
+                                else {
+                                    assert(palace == palace_row_id);
+                                }
+                                size_t palace_col_id = palace_col_base + idx * 3;
+                                if (idx != (row / 3)) {
+                                    this->palace_cols[palace_col_id][num].set(col % 3) = !this->cols[col].test(num);
+                                }
+                                else {
+                                    assert(palace == palace_col_id);
+                                }
+                            }
+#endif
     }
 };
 
