@@ -298,7 +298,7 @@ public:
         }
 
         int move_idx = getNextFillCell(valid_moves);
-        if (move_idx >= 0) {
+        if (move_idx > 0) {
             size_t row = valid_moves[move_idx].row;
             size_t col = valid_moves[move_idx].col;
             valid_moves.remove(move_idx);
