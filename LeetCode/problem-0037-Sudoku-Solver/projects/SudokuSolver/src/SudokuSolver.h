@@ -525,6 +525,7 @@ public:
 struct SudokuHelper {
     static const size_t Rows = 9;
     static const size_t Cols = 9;
+    static const size_t Palaces = 9;
     static const size_t Numbers = 9;
 
     static void display_board(const std::vector<std::vector<char>> & board,
