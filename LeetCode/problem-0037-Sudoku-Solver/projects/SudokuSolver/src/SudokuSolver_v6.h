@@ -223,17 +223,17 @@ public:
     };
 
 private:
-    BitMatrix2<9, 9>    rows;           // [row][num]
-    BitMatrix2<9, 9>    cols;           // [col][num]
-    BitMatrix2<9, 9>    palaces;        // [palace][num]
-    BitMatrix2<81, 9>   usable;         // [row * 9 + col][num]
+    SmallBitMatrix2<9, 9>    rows;           // [row][num]
+    SmallBitMatrix2<9, 9>    cols;           // [col][num]
+    SmallBitMatrix2<9, 9>    palaces;        // [palace][num]
+    SmallBitMatrix2<81, 9>   usable;         // [row * 9 + col][num]
 
-    BitMatrix3<9, 9, 3> palace_rows;    // [palace][num][row]
-    BitMatrix3<9, 9, 3> palace_cols;    // [palace][num][col]
-    BitMatrix3<9, 9, 9> palace_nums;    // [palace][num][pos]
+    SmallBitMatrix3<9, 9, 3> palace_rows;    // [palace][num][row]
+    SmallBitMatrix3<9, 9, 3> palace_cols;    // [palace][num][col]
+    SmallBitMatrix3<9, 9, 9> palace_nums;    // [palace][num][pos]
 
-    BitMatrix2<3, 9>    palace_row_mask;
-    BitMatrix2<3, 9>    palace_col_mask;
+    SmallBitMatrix2<3, 9>    palace_row_mask;
+    SmallBitMatrix2<3, 9>    palace_col_mask;
 
 #if V6_USE_MOVE_PATH
     std::vector<MoveInfo> move_path;
@@ -248,14 +248,14 @@ public:
         // 0x07 = ob000000111 (2)
         size_t mask = size_t(0x07);
         for (size_t row = 0; row < 3; row++) {
-            this->palace_row_mask[row] = ~mask;
+            this->palace_row_mask[row] = mask;
             mask <<= 3;
         }
 
         // 0x49 = 0b001001001 (2)
         mask = size_t(0x49);
         for (size_t col = 0; col < 3; col++) {
-            this->palace_col_mask[col] = ~mask;
+            this->palace_col_mask[col] = mask;
             mask <<= 1;
         }
     }
@@ -268,11 +268,10 @@ public:
         assert(valid_moves.size() > 1);
 
         int move_type = MoveType::Unknown;
+        int min_index = -1;
 
         // Find the number that unique position or minimum positions to each palace.
         size_t minPosition = size_t(-1);
-        int min_num_index = -1;
-        std::bitset<9> min_pos_bits;
         for (int index = valid_nums.begin(); index != valid_nums.end(); index = valid_nums.next(index)) {
             size_t palace = valid_nums[index].palace;
             size_t num    = valid_nums[index].num;
@@ -282,36 +281,20 @@ public:
                     return -1;
                 }
                 else if (numPosition == 1) {
-#if 0
-                    int pos_index = -1;
-                    for (size_t pos = 0; pos < SudokuHelper::Numbers; pos++) {
-                        if (this->palace_nums[palace][num].test(pos)) {
-                            size_t row = valid_nums[index].palace_row + pos / 3;
-                            size_t col = valid_nums[index].palace_col + pos % 3;
-                            pos_index = valid_moves.find(PosInfo((uint32_t)row, (uint32_t)col));
-                            //assert(pos_index != -1);
-                            if (pos_index != -1)
-                                valid_moves.remove(pos_index);
-                            break;
-                        }
-                    }
-#endif
-                    //assert(pos_index != -1);
                     out_move_type = MoveType::ByPalaceNumber;
                     return index;
                 }
                 minPosition = numPosition;
-                min_num_index = index;
+                min_index = index;
             }
         }
 
-        if (min_num_index != -1) {
+        if (min_index > 0) {
             move_type = MoveType::ByPalaceNumber;
         }
 
         // Find the position that unique number or minimum numbers.
         size_t minUsable = minPosition;
-        int min_pos_index = -1;
         for (int index = valid_moves.begin(); index != valid_moves.end(); index = valid_moves.next(index)) {
             size_t row = valid_moves[index].row;
             size_t col = valid_moves[index].col;
@@ -325,13 +308,13 @@ public:
                     return index;
                 }
                 minUsable = numUsable;
-                min_pos_index = index;
+                min_index = index;
                 move_type = MoveType::ByLocation;
             }
         }
 
         out_move_type = move_type;
-        return ((move_type == MoveType::ByPalaceNumber) ? min_num_index : min_pos_index);
+        return min_index;
     }
 
     std::bitset<9> getUsable(size_t row, size_t col) {
@@ -348,7 +331,7 @@ public:
     void updateUsable(size_t row, size_t col, size_t num) {
         size_t cell_y = row * 9;
         for (size_t x = 0; x < Cols; x++) {
-            if (x != col) {
+            if (true || (x != col)) {
                 this->usable[cell_y + x].reset(num);
             }
         }
@@ -369,29 +352,86 @@ public:
 
         size_t palace_row = row % 3;
         size_t palace_col = col % 3;
+        size_t palace_pos = palace_row * 3 + palace_col;
+        for (size_t _num = 0; _num < SudokuHelper::Numbers; _num++) {
+            if (!this->palaces[palace].test(_num)) {
+                this->palace_nums[palace][_num].reset(palace_pos);
+            }
+        }
+
+        std::bitset<9> num_bits;
+        size_t num_mask;
         for (size_t idx = 0; idx < 3; idx++) {
             size_t palace_row_id = palace_row_idx * 3 + idx;
             if (idx != palace_col_idx) {
-                this->palace_rows[palace_row_id][num].reset(palace_row);
+                if (!this->palaces[palace_row_id].test(num)) {
+                    if (this->palace_nums[palace_row_id][num].test(palace_row * 3 + 0)) {
+                        num_bits = this->palace_nums[palace_row_id][num] & this->palace_row_mask[palace_row];
+                        num_mask = size_t(1) << (palace_row * 3 + 0);
+                        if (num_bits == num_mask) {
+                            this->palace_cols[palace_row_id][num].reset(0);
+                        }
+                    }
+                    if (this->palace_nums[palace_row_id][num].test(palace_row * 3 + 1)) {
+                        num_bits = this->palace_nums[palace_row_id][num] & this->palace_row_mask[palace_row];
+                        num_mask = size_t(1) << (palace_row * 3 + 1);
+                        if (num_bits == num_mask) {
+                            this->palace_cols[palace_row_id][num].reset(1);
+                        }
+                    }
+                    if (this->palace_nums[palace_row_id][num].test(palace_row * 3 + 2)) {
+                        num_bits = this->palace_nums[palace_row_id][num] & this->palace_row_mask[palace_row];
+                        num_mask = size_t(1) << (palace_row * 3 + 2);
+                        if (num_bits == num_mask) {
+                            this->palace_cols[palace_row_id][num].reset(2);
+                        }
+                    }
+
+                    this->palace_rows[palace_row_id][num].reset(palace_row);
 #if USE_ROW_COL_MASK
-                this->palace_nums[palace_row_id][num] &= this->palace_row_mask[palace_row];
+                    this->palace_nums[palace_row_id][num] &= ~this->palace_row_mask[palace_row];
 #else
-                this->palace_nums[palace_row_id][num].reset(palace_row * 3 + 0);
-                this->palace_nums[palace_row_id][num].reset(palace_row * 3 + 1);
-                this->palace_nums[palace_row_id][num].reset(palace_row * 3 + 2);
+                    this->palace_nums[palace_row_id][num].reset(palace_row * 3 + 0);
+                    this->palace_nums[palace_row_id][num].reset(palace_row * 3 + 1);
+                    this->palace_nums[palace_row_id][num].reset(palace_row * 3 + 2);
 #endif
+                }
             }
 
             size_t palace_col_id = palace_col_idx + idx * 3;
             if (idx != palace_row_idx) {
-                this->palace_cols[palace_col_id][num].reset(palace_col);
+                if (!this->palaces[palace_col_id].test(num)) {
+                    if (this->palace_nums[palace_col_id][num].test(0 * 3 + palace_col)) {
+                        num_bits = this->palace_nums[palace_col_id][num] & this->palace_col_mask[palace_col];
+                        num_mask = size_t(1) << (0 * 3 + palace_col);
+                        if (num_bits == num_mask) {
+                            this->palace_rows[palace_col_id][num].reset(0);
+                        }
+                    }
+                    if (this->palace_nums[palace_col_id][num].test(1 * 3 + palace_col)) {
+                        num_bits = this->palace_nums[palace_col_id][num] & this->palace_col_mask[palace_col];
+                        num_mask = size_t(1) << (1 * 3 + palace_col);
+                        if (num_bits == num_mask) {
+                            this->palace_rows[palace_col_id][num].reset(1);
+                        }
+                    }
+                    if (this->palace_nums[palace_col_id][num].test(2 * 3 + palace_col)) {
+                        num_bits = this->palace_nums[palace_col_id][num] & this->palace_col_mask[palace_col];
+                        num_mask = size_t(1) << (2 * 3 + palace_col);
+                        if (num_bits == num_mask) {
+                            this->palace_rows[palace_col_id][num].reset(2);
+                        }
+                    }
+
+                    this->palace_cols[palace_col_id][num].reset(palace_col);
 #if USE_ROW_COL_MASK
-                this->palace_nums[palace_col_id][num] &= this->palace_col_mask[palace_col];
+                    this->palace_nums[palace_col_id][num] &= ~this->palace_col_mask[palace_col];
 #else
-                this->palace_nums[palace_col_id][num].reset(0 * 3 + palace_col);
-                this->palace_nums[palace_col_id][num].reset(1 * 3 + palace_col);
-                this->palace_nums[palace_col_id][num].reset(2 * 3 + palace_col);
+                    this->palace_nums[palace_col_id][num].reset(0 * 3 + palace_col);
+                    this->palace_nums[palace_col_id][num].reset(1 * 3 + palace_col);
+                    this->palace_nums[palace_col_id][num].reset(2 * 3 + palace_col);
 #endif
+                }
             }
         }
 
@@ -409,11 +449,11 @@ public:
     }
 
     template <bool isUndo = true>
-    void updateUndoUsable(size_t row, size_t col) {
+    void updateUndoUsable(size_t row, size_t col, size_t _num) {
         size_t cell_y = row * 9;
         size_t palace_row = row / 3 * 3;
         for (size_t x = 0; x < Cols; x++) {
-            if (isUndo || x != col) {
+            if (isUndo || (x != col)) {
                 size_t palace = palace_row + x / 3;
                 this->usable[cell_y + x] = getUsable(row, x, palace);
             }
@@ -441,6 +481,40 @@ public:
             }
             pos += (9 - 3);
         }
+
+#if 0
+        palace_row = (row % 3);
+        palace_col = (col % 3);
+        size_t palace_pos = palace_row * 3 + palace_col;
+        this->palace_rows[palace][_num].set(palace_row);
+        this->palace_cols[palace][_num].set(palace_col);
+        this->palace_nums[palace][_num].set(palace_pos);
+
+        for (int index = valid_nums.begin(); index != valid_nums.end(); index = valid_nums.next(index)) {
+            size_t palace = valid_nums[index].palace;
+            size_t num    = valid_nums[index].num;
+            const std::bitset<9> & validPos = this->palace_nums[palace][num];
+            for (size_t pos = 0; pos < validPos.size(); pos++) {
+                // Get usable position
+                if (validPos.test(pos)) {
+                    row = valid_nums[index].palace_row + (pos / 3);
+                    col = valid_nums[index].palace_col + (pos % 3);
+                    std::bitset<9> numsUsable = getUsable(row, col, palace);
+
+                    // Get usable positions each number in the same palace.
+                    size_t palace_row = (row % 3);
+                    size_t palace_col = (col % 3);
+                    size_t palace_pos = palace_row * 3 + palace_col;
+                    bool isUsable = numsUsable.test(num);
+                    if (isUsable) {
+                        this->palace_rows[palace][num] |= size_t(1) << (palace_row);
+                        this->palace_cols[palace][num] |= size_t(1) << (palace_col);
+                        this->palace_nums[palace][num].set(palace_pos);
+                    }
+                }
+            }
+        }
+#endif
     }
 
     void fillNum(size_t row, size_t col, size_t num) {
@@ -466,7 +540,7 @@ public:
         this->rows[row].reset(num);
         this->cols[col].reset(num);
         this->palaces[palace].reset(num);
-        updateUndoUsable<true>(row, col);
+        updateUndoUsable<true>(row, col, num);
 #if V6_USE_MOVE_PATH
         this->move_path.pop_back();
 #endif
@@ -475,36 +549,58 @@ public:
     bool solve(std::vector<std::vector<char>> & board,
                SmallFixedDualList<NumInfo, 81> & valid_nums,
                SmallFixedDualList<PosInfo, 81> & valid_moves) {
-        if (valid_moves.size() == 1) {
+        if (valid_moves.size() <= 1) {
 #if V6_SEARCH_ALL_STAGE
             this->answers.push_back(board);
 #endif
             return true;
         }
 
+#if 0
+        if (valid_moves.size() == 28 || valid_moves.size() == 4) {
+            if (valid_moves.size() <= 4)
+                SudokuHelper::display_board(board);
+        }
+#endif
+
         int move_type;
         int move_idx = getNextFillCell(valid_nums, valid_moves, move_type);
         if (move_idx > 0) {
+            // Save palace bitset status
+            BitMatrix3<9, 9, 3> save_palace_rows(this->palace_rows);
+            BitMatrix3<9, 9, 3> save_palace_cols(this->palace_cols);
+            BitMatrix3<9, 9, 9> save_palace_nums(this->palace_nums);
+
             if (move_type == MoveType::ByPalaceNumber) {
                 size_t palace = valid_nums[move_idx].palace;
                 size_t num    = valid_nums[move_idx].num;
                 valid_nums.remove(move_idx);
-                const std::bitset<9> & validPos = this->palace_nums[palace][num];
+                // printf(">>>> valid_nums .remove(move_idx  = %d);\n\n", move_idx);
+                std::bitset<9> validPos = this->palace_nums[palace][num];
+                size_t pos_count = validPos.count();
+                size_t count = 0;
                 assert(validPos.count() != 0);
                 for (size_t pos = 0; pos < validPos.size(); pos++) {
                     // Get usable position
                     if (validPos.test(pos)) {
                         size_t row = valid_nums[move_idx].palace_row + (pos / 3);
                         size_t col = valid_nums[move_idx].palace_col + (pos % 3);
-                        int pos_index = valid_moves.find(PosInfo((uint32_t)row, (uint32_t)col));
-                        //assert(pos_index > 0);
-                        if (pos_index > 0)
-                            valid_moves.remove(pos_index);
                         doFillNum(row, col, num);
+
+                        int pos_index = valid_moves.find(PosInfo((uint32_t)row, (uint32_t)col));
+                        assert(pos_index > 0);
+                        if (true || (pos_index > 0)) {
+                            valid_moves.remove(pos_index);
+                            //printf(">>   valid_moves.remove(pos_index = %d); (*)\n\n", pos_index);
+                        }
+
+                        // printf(">>   palace: %d, pos: %d, num: %d\n", (int)palace, (int)pos, (int)num);
+                        // printf(">>   row: %d, col: %d, num: %d\n\n", (int)row, (int)col, (int)num);
+
                         board[row][col] = (char)(num + '1');
 
                         if (pos_index <= 0) {
-                            return true;
+                            //return true;
                         }
 
                         if (solve(board, valid_nums, valid_moves)) {
@@ -514,34 +610,55 @@ public:
                         }
 
                         board[row][col] = '.';
-                        undoFillNum(row, col, num);
-                        if (pos_index > 0)
+                        if (true || (pos_index > 0)) {
                             valid_moves.push_front(pos_index);
+                        }
+
+                        undoFillNum(row, col, num);
+
+                        matrix3_copy(this->palace_rows, save_palace_rows);
+                        matrix3_copy(this->palace_cols, save_palace_cols);
+                        matrix3_copy(this->palace_nums, save_palace_nums);
+
+                        count++;
+                        if (count >= pos_count)
+                            break;
                     }
                 }
                 valid_nums.push_front(move_idx);
+                // printf(">>>> end.\n\n");
             }
             else {
                 assert(move_type == MoveType::ByLocation);
                 size_t row = valid_moves[move_idx].row;
                 size_t col = valid_moves[move_idx].col;
                 valid_moves.remove(move_idx);
-                const std::bitset<9> & fillNums = this->usable[row * 9 + col];
-                assert(fillNums.count() != 0);
-                for (size_t num = 0; num < fillNums.size(); num++) {
+                // printf(">>>> valid_moves.remove(move_idx = %d);\n\n", move_idx);
+
+                std::bitset<9> validNums = this->usable[row * 9 + col];
+                size_t num_count = validNums.count();
+                size_t count = 0;
+                assert(validNums.count() != 0);
+                for (size_t num = 0; num < validNums.size(); num++) {
                     // Get usable numbers
-                    if (fillNums.test(num)) {
+                    if (validNums.test(num)) {
+                        doFillNum(row, col, num);
+
                         size_t palace = row / 3 * 3 + col / 3;
                         int num_index = valid_nums.find(NumInfo((uint32_t)palace, (uint32_t)num, false));
                         assert(num_index > 0);
-                        if (num_index > 0)
+                        if (true || (num_index > 0)) {
                             valid_nums.remove(num_index);
+                            //printf(">>   valid_nums .remove(num_index = %d);\n\n", num_index);
+                        }
 
-                        doFillNum(row, col, num);
+                        // printf(">>   palace: %d, pos: %d, num: %d\n", (int)palace, (int)((row % 3) * 3 + (col % 3)), (int)num);
+                        // printf(">>   row: %d, col: %d, num: %d\n\n", (int)row, (int)col, (int)num);
+
                         board[row][col] = (char)(num + '1');
 
                         if (num_index <= 0) {
-                            return true;
+                            //return true;
                         }
 
                         if (solve(board, valid_nums, valid_moves)) {
@@ -551,12 +668,23 @@ public:
                         }
 
                         board[row][col] = '.';
-                        undoFillNum(row, col, num);
-                        if (num_index > 0)
+                        if (true || (num_index > 0)) {
                             valid_nums.push_front(num_index);
+                        }
+
+                        undoFillNum(row, col, num);
+
+                        matrix3_copy(this->palace_rows, save_palace_rows);
+                        matrix3_copy(this->palace_cols, save_palace_cols);
+                        matrix3_copy(this->palace_nums, save_palace_nums);
+
+                        count++;
+                        if (count >= num_count)
+                            break;
                     }
                 }
                 valid_moves.push_front(move_idx);
+                // printf(">>>> end.\n\n");
             }
         }
 
@@ -569,9 +697,10 @@ public:
         jtest::StopWatch sw;
         sw.start();
 
-        int index = 1;
         SmallFixedDualList<NumInfo, 81> valid_nums;
         SmallFixedDualList<PosInfo, 81> valid_moves;
+
+        int index = 1;
         for (size_t row = 0; row < board.size(); row++) {
             const std::vector<char> & line = board[row];
             for (size_t col = 0; col < line.size(); col++) {
@@ -659,7 +788,6 @@ Find_Next_Step:
         }
 
         int num_index = 1;
-        BitMatrix2<9, 9> is_first_nums;
         for (uint32_t palace = 0; palace < SudokuHelper::Palaces; palace++) {
             for (uint32_t num = 0; num < SudokuHelper::Numbers; num++) {
                 size_t pos_count = this->palace_nums[palace][num].count();

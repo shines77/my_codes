@@ -34,7 +34,7 @@ public:
 
     static const size_t BoardSize = Rows * Cols * Numbers;
 
-    typedef BitMatrix<BoardSize, Rows * Cols * 4> matrix_type;
+    typedef SmallBitMatrix<BoardSize, Rows * Cols * 4> matrix_type;
 
 private:
     matrix_type matrix;

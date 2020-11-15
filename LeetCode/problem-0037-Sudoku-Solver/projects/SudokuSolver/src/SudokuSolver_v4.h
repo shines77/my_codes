@@ -44,10 +44,10 @@ public:
     typedef typename std::list<Position>::const_iterator cmove_iterator;
 
 private:
-    BitMatrix2<9, 9>  rows;
-    BitMatrix2<9, 9>  cols;
-    BitMatrix2<9, 9>  palaces;
-    BitMatrix2<81, 9> usable;
+    SmallBitMatrix2<9, 9>  rows;
+    SmallBitMatrix2<9, 9>  cols;
+    SmallBitMatrix2<9, 9>  palaces;
+    SmallBitMatrix2<81, 9> usable;
 
 #if V4_SEARCH_ALL_STAGE
     std::vector<std::vector<std::vector<char>>> answers;

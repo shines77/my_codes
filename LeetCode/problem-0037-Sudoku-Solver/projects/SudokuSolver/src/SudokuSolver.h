@@ -328,7 +328,7 @@ public:
 };
 
 template <size_t Rows, size_t Cols>
-class BitMatrix {
+class SmallBitMatrix {
 private:
 #if (MATRIX_BITSET_MODE == MATRIX_USE_SMALL_BITMAP)
     typedef SmallBitMap<Cols>   bitmap_type;
@@ -343,8 +343,8 @@ private:
     bitmap_type array_[Rows];
 
 public:
-    BitMatrix() : rows_(Rows) {}
-    ~BitMatrix() {}
+    SmallBitMatrix() : rows_(Rows) {}
+    ~SmallBitMatrix() {}
 
     size_t rows() const { return this->rows_; }
     size_t cols() const { return Cols; }
@@ -419,15 +419,15 @@ public:
 };
 
 template <size_t Rows, size_t Cols>
-class BitMatrix2 {
+class SmallBitMatrix2 {
 private:
     typedef std::bitset<Cols>   bitset_type;
 
     bitset_type array_[Rows];
 
 public:
-    BitMatrix2() = default;
-    ~BitMatrix2() = default;
+    SmallBitMatrix2() = default;
+    ~SmallBitMatrix2() = default;
 
     size_t rows() const { return Rows; }
     size_t cols() const { return Cols; }
@@ -469,58 +469,264 @@ public:
     }
 };
 
-template <size_t ZDepths, size_t Rows, size_t Cols>
-class BitMatrix3 {
+template <size_t Depths, size_t Rows, size_t Cols>
+class SmallBitMatrix3 {
 private:
-    typedef BitMatrix2<Rows, Cols>  matrix_type;
+    typedef SmallBitMatrix2<Rows, Cols>  matrix_type;
 
-    matrix_type matrix_[ZDepths];
+    matrix_type matrix_[Depths];
 
 public:
-    BitMatrix3() = default;
-    ~BitMatrix3() = default;
+    SmallBitMatrix3() = default;
+    ~SmallBitMatrix3() = default;
 
-    size_t zdepths() const { return ZDepths; }
+    size_t depths() const { return Depths; }
     size_t rows() const { return Rows; }
     size_t cols() const { return Cols; }
 
-    size_t size() const { return ZDepths; }
+    size_t size() const { return Depths; }
     size_t matrix2d_size() const { return (Rows * Cols); }
-    size_t total_size() const { return (ZDepths * Rows * Cols); }
+    size_t total_size() const { return (Depths * Rows * Cols); }
 
-    bool test(size_t z_depth, size_t row, size_t col) {
-        assert(z_depth < ZDepths);
-        return this->matrix_[z_depth][row].test(col);
+    bool test(size_t depth, size_t row, size_t col) {
+        assert(depth < Depths);
+        return this->matrix_[depth][row].test(col);
     }
 
     void set() {
-        for (size_t z_depth = 0; z_depth < ZDepths; z_depth++) {
-            this->matrix_[z_depth].set();
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_[depth].set();
         }
     }
 
     void reset() {
-        for (size_t z_depth = 0; z_depth < ZDepths; z_depth++) {
-            this->matrix_[z_depth].reset();
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_[depth].reset();
         }
     }
 
     void flip() {
-        for (size_t z_depth = 0; z_depth < ZDepths; z_depth++) {
-            this->matrix_[z_depth].flip();
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_[depth].flip();
         }
     }
 
     matrix_type & operator [] (size_t pos) {
-        assert(pos < ZDepths);
+        assert(pos < Depths);
         return this->matrix_[pos];
     }
 
     const matrix_type & operator [] (size_t pos) const {
-        assert(pos < ZDepths);
+        assert(pos < Depths);
         return this->matrix_[pos];
     }
 };
+
+template <size_t Rows, size_t Cols>
+class BitMatrix2 {
+private:
+    typedef std::bitset<Cols>   bitset_type;
+
+    std::vector<bitset_type> array_;
+
+public:
+    BitMatrix2() {
+        this->array_.resize(Rows);
+    }
+
+    BitMatrix2(const BitMatrix2 & src) {
+        this->array_.reserve(Rows);
+        for (size_t row = 0; row < Rows; row++) {
+            this->array_.push_back(src[row]);
+        }
+    }
+
+    BitMatrix2(const SmallBitMatrix2<Rows, Cols> & src) {
+        this->array_.reserve(Rows);
+        for (size_t row = 0; row < Rows; row++) {
+            this->array_.push_back(src[row]);
+        }
+    }
+
+    ~BitMatrix2() = default;
+
+    BitMatrix2 & operator = (const BitMatrix2 & rhs) {
+        if (&rhs != this) {
+            for (size_t row = 0; row < Rows; row++) {
+                this->array_[row] = rhs[row];
+            }
+        }
+    }
+
+    BitMatrix2 & operator = (const SmallBitMatrix2<Rows, Cols> & rhs) {
+        for (size_t row = 0; row < Rows; row++) {
+            this->array_[row] = rhs[row];
+        }
+    }
+
+    size_t rows() const { return Rows; }
+    size_t cols() const { return Cols; }
+
+    size_t size() const { return Rows; }
+    size_t total_size() const { return (Rows * Cols); }
+
+    bool test(size_t row, size_t col) {
+        assert(row < Rows);
+        return this->array_[row].test(col);
+    }
+
+    void set() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->array_[row].set();
+        }
+    }
+
+    void reset() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->array_[row].reset();
+        }
+    }
+
+    void flip() {
+        for (size_t row = 0; row < Rows; row++) {
+            this->array_[row].flip();
+        }
+    }
+
+    bitset_type & operator [] (size_t pos) {
+        assert(pos < Rows);
+        return this->array_[pos];
+    }
+
+    const bitset_type & operator [] (size_t pos) const {
+        assert(pos < Rows);
+        return this->array_[pos];
+    }
+};
+
+template <size_t Depths, size_t Rows, size_t Cols>
+class BitMatrix3 {
+private:
+    typedef BitMatrix2<Rows, Cols>  matrix_type;
+
+    std::vector<matrix_type> matrix_;
+
+public:
+    BitMatrix3() {
+        this->matrix_.resize(Depths);
+    }
+
+    BitMatrix3(const BitMatrix3 & src) {
+        this->matrix_.reserve(Depths);
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_.push_back(src[depth]);
+        }
+    }
+
+    BitMatrix3(const SmallBitMatrix3<Depths, Rows, Cols> & src) {
+        this->matrix_.reserve(Depths);
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_.push_back(src[depth]);
+        }
+    }
+
+    ~BitMatrix3() = default;
+
+    BitMatrix3 & operator = (const BitMatrix3 & rhs) {
+        if (&rhs != this) {
+            for (size_t depth = 0; depth < Depths; depth++) {
+                this->matrix_[depth] = rhs[depth];
+            }
+        }
+    }
+
+    BitMatrix3 & operator = (const SmallBitMatrix3<Depths, Rows, Cols> & rhs) {
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_[depth] = rhs[depth];
+        }
+    }
+
+    size_t depths() const { return Depths; }
+    size_t rows() const { return Rows; }
+    size_t cols() const { return Cols; }
+
+    size_t size() const { return Depths; }
+    size_t matrix2d_size() const { return (Rows * Cols); }
+    size_t total_size() const { return (Depths * Rows * Cols); }
+
+    bool test(size_t depth, size_t row, size_t col) {
+        assert(depth < Depths);
+        return this->matrix_[depth][row].test(col);
+    }
+
+    void set() {
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_[depth].set();
+        }
+    }
+
+    void reset() {
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_[depth].reset();
+        }
+    }
+
+    void flip() {
+        for (size_t depth = 0; depth < Depths; depth++) {
+            this->matrix_[depth].flip();
+        }
+    }
+
+    matrix_type & operator [] (size_t pos) {
+        assert(pos < Depths);
+        return this->matrix_[pos];
+    }
+
+    const matrix_type & operator [] (size_t pos) const {
+        assert(pos < Depths);
+        return this->matrix_[pos];
+    }
+};
+
+template <size_t Rows, size_t Cols>
+static void matrix2_copy(SmallBitMatrix2<Rows, Cols> & dest,
+                         const BitMatrix2<Rows, Cols> & src)
+{
+    for (size_t row = 0; row < Rows; row++) {
+        dest[row] = src[row];
+    }
+}
+
+template <size_t Rows, size_t Cols>
+static void matrix2_copy(BitMatrix2<Rows, Cols> & dest,
+                         const SmallBitMatrix2<Rows, Cols> & src)
+{
+    for (size_t row = 0; row < Rows; row++) {
+        dest[row] = src[row];
+    }
+}
+
+template <size_t Depths, size_t Rows, size_t Cols>
+static void matrix3_copy(SmallBitMatrix3<Depths, Rows, Cols> & dest,
+                         const BitMatrix3<Depths, Rows, Cols> & src)
+{
+    for (size_t depth = 0; depth < Depths; depth++) {
+        for (size_t row = 0; row < Rows; row++) {
+            dest[depth][row] = src[depth][row];
+        }
+    }
+}
+
+template <size_t Depths, size_t Rows, size_t Cols>
+static void matrix3_copy(BitMatrix3<Depths, Rows, Cols> & dest,
+                         const SmallBitMatrix3<Depths, Rows, Cols> & src)
+{
+    for (size_t depth = 0; depth < Depths; depth++) {
+        for (size_t row = 0; row < Rows; row++) {
+            dest[depth][row] = src[depth][row];
+        }
+    }
+}
 
 struct SudokuHelper {
     static const size_t Rows = 9;
