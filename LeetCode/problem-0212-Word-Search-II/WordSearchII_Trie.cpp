@@ -34,60 +34,60 @@ static const Direction direction[4] = {
 struct VistedMap {
     char * map_;
     int col_, row_;
-    
+
     VistedMap() : map_(nullptr), col_(0), row_(0) {}
     ~VistedMap() {
         destroy();
     }
-    
+
     int col() const { return col_; }
     int row() const { return row_; }
     int size() const { return (col_ * row_); }
-    
+
     void create(int col, int row) {
         destroy();
 
         map_ = new char[col * row];
         ::memset(map_, 0, col * row * sizeof(char));
-        
+
         col_ = col;
         row_ = row;
     }
-    
+
     void destroy() {
         if (map_) {
             delete[] map_;
             map_ = nullptr;
         }
     }
-    
+
     bool test(int pos) {
         if (pos < size())
             return (map_[pos] != 0);
         else
             return false;
     }
-    
+
     bool test(int col, int row) {
         int pos = row * col_ + col;
         return test(pos);
     }
-    
+
     void set(int pos) {
         if (pos < size())
             map_[pos] = 1;
     }
-    
+
     void set(int col, int row) {
         int pos = row * col_ + col;
         set(pos);
     }
-    
+
     void clear(int pos) {
         if (pos < size())
             map_[pos] = 0;
     }
-    
+
     void clear(int col, int row) {
         int pos = row * col_ + col;
         clear(pos);
@@ -97,69 +97,69 @@ struct VistedMap {
 struct CharBoard {
     char * map_;
     int col_, row_;
-    
+
     CharBoard() : map_(nullptr), col_(0), row_(0) {}
     ~CharBoard() {
         destroy();
     }
-    
+
     int col() const { return col_; }
     int row() const { return row_; }
     int size() const { return (col_ * row_); }
-    
+
     void create(int col, int row) {
         destroy();
-        
+
         map_ = new char[col * row];
         ::memset(map_, 0, col * row * sizeof(char));
-        
+
         col_ = col;
         row_ = row;
     }
-    
+
     void create(vector<vector<char>> & board) {
         int row = (int)board.size();
         int col = (int)board[0].size();
-        
+
         destroy();
-        
+
         map_ = new char[col * row];
-        
+
         int index = 0;
         for (int y = 0; y < row; y++) {
             for (int x = 0; x < col; x++) {
                 map_[index++] = board[y][x];
             }
         }
-        
+
         col_ = col;
         row_ = row;
     }
-    
+
     void destroy() {
         if (map_) {
             delete[] map_;
             map_ = nullptr;
         }
     }
-    
+
     char get(int pos) {
         if (pos < size())
             return map_[pos];
         else
             return 0;
     }
-    
+
     char get(int col, int row) {
         int pos = row * col_ + col;
         return get(pos);
     }
-    
+
     void set(int pos, char c) {
         if (pos < size())
             map_[pos] = c;
     }
-    
+
     void set(int col, int row, char c) {
         int pos = row * col_ + col;
         set(pos, c);
@@ -304,13 +304,13 @@ public:
     vector<string> wordSearchII(vector<vector<char>> & board, vector<string> & words) {
         row = (int)board.size();
         col = (int)board[0].size();
-        
+
         //CharBoard charBoard;
         //charBoard.create(board);
-        
+
         VistedMap vistedMap;
         vistedMap.create(col, row);
-        
+
         maxWordLen = 0;
         for (auto it = words.cbegin(); it != words.cend(); ++it) {
             const string & word = *it;
@@ -321,7 +321,7 @@ public:
         }
 
         trieTree.buildTree(words);
-        
+
         startSearch(board, vistedMap, &trieTree);
         return resultList;
     }
@@ -338,10 +338,10 @@ public:
         }
         return success;
     }
-    
+
     void searchWords(string & target, int x, int y,
                      vector<vector<char>> & board, VistedMap & visted,
-                     TrieTree * curTrie) {       
+                     TrieTree * curTrie) {
         int newX, newY;
         for (int dir = 0; dir < 4; dir++) {
             newX = x + direction[dir].x;
@@ -350,7 +350,7 @@ public:
             newY = y + direction[dir].y;
             if (newY < 0 || newY >= row)
                 continue;
-            
+
             if (visted.test(newX, newY))
                 continue;
 
@@ -371,13 +371,13 @@ public:
             }
 
             searchWords(target, newX, newY, board, visted, nextTrie);
-            
+
             // Undo character link
             target.pop_back();
             visted.clear(newX, newY);
         }
     }
-    
+
     void startSearch(vector<vector<char>> & board, VistedMap & visted,
                      TrieTree * curTrie) {
         string target;
